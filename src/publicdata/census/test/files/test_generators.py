@@ -118,11 +118,11 @@ class TestGenerators(unittest.TestCase):
 
         rows = list(islice(tm,5))
 
-        self.assertEqual(('GEOID', 'B01001_001_m90', 'B01001_004', 'B01001_006_m90', 'B01001_009',
-                          'B01001_011_m90', 'B01001_014', 'B01001_016_m90', 'B01001_019', 'B01001_021_m90',
-                          'B01001_024', 'B01001_026_m90', 'B01001_029', 'B01001_031_m90', 'B01001_034',
-                          'B01001_036_m90', 'B01001_039', 'B01001_041_m90', 'B01001_044', 'B01001_046_m90',
-                          'B01001_049'),
+        self.assertEqual(('geoid', 'b01001_001_m90', 'b01001_004', 'b01001_006_m90', 'b01001_009',
+                          'b01001_011_m90', 'b01001_014', 'b01001_016_m90', 'b01001_019', 'b01001_021_m90',
+                          'b01001_024', 'b01001_026_m90', 'b01001_029', 'b01001_031_m90', 'b01001_034',
+                          'b01001_036_m90', 'b01001_039', 'b01001_041_m90', 'b01001_044', 'b01001_046_m90',
+                          'b01001_049'),
                           rows[0][::5])
 
 
@@ -228,10 +228,10 @@ class TestGenerators(unittest.TestCase):
 
         df = u.generator.dataframe()
 
-        self.assertEqual(9708, int(df['B01002_001'].sum()))
-        self.assertEqual(809, int(df['B01002_001_m90'].sum()))
-        self.assertEqual(9375, int(df['B01002_002'].sum()))
-        self.assertEqual(1171, int(df['B01002_002_m90'].sum()))
+        self.assertEqual(9708, int(df['b01002_001'].sum()))
+        self.assertEqual(809, int(df['b01002_001_m90'].sum()))
+        self.assertEqual(9375, int(df['b01002_002'].sum()))
+        self.assertEqual(1171, int(df['b01002_002_m90'].sum()))
 
 
     def test_geo_dataframe(self):
@@ -264,8 +264,11 @@ class TestGenerators(unittest.TestCase):
             parse_errors = []
 
             for c in t.columns:
-                if '_m90' not in c.unique_id and 'year' in c.description and not c.age_range and '1 year ago' not in \
-                        c.description and 'year-round' not in c.description:
+                if '_m90' not in c.unique_id and \
+                        'year' in c.description and \
+                        not c.age_range and \
+                        '1 year ago' not in c.description and \
+                        not( 'year-round' in c.description or  'year - round' in c.description) :
                     parse_errors.append(c)
 
             for parse_error in parse_errors:

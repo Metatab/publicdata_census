@@ -18,12 +18,10 @@ class TestIssues(unittest.TestCase):
 
         df = u.dataframe()
 
-        self.assertTrue('Two or more races:' in ' '.join(df.titles.columns) )
-        self.assertTrue('Two or more races:' in ' '.join(df.title_map.values()))
+        self.assertTrue('Two or more races' in ' '.join(df.titles.columns) )
+        self.assertTrue('Two or more races' in ' '.join(df.title_map.values()))
 
         x = u._mangle_dataframe(df)
-
-
 
         g = u.generator
 
@@ -102,7 +100,7 @@ class TestIssues(unittest.TestCase):
     def test_B02001(self):
         import rowgenerators as rg
 
-        raceeth = rg.dataframe('census://2017/5/tract/B02001')
+        raceeth = rg.dataframe('census://2017/5/CA/tract/B02001')
 
 
 if __name__ == '__main__':

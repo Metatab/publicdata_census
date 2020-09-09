@@ -7,7 +7,6 @@
 import six
 import pandas as pd
 import numpy as np
-from publicdata.exc import PublicDataException
 
 class CensusDataFrame(pd.DataFrame):
     _metadata = ['title_map', 'release', '_dataframe', '_url', 'table']  # Release is the Census Reporter release metadata
@@ -51,10 +50,16 @@ class CensusDataFrame(pd.DataFrame):
         m = dict( list(self.title_map.items()) +
                   [ (k.lower(), v) for k,v in self.title_map.items()])
 
-
         return self.rename(index=str,
                            columns=m,
                            inplace=False)
+
+    @property
+    def mi(self):
+        """Return a copy with a multiindex for the columns, with levels for
+        table name, margin/estimate, column number, and race iteration"""
+
+        return self
 
     def search_columns(self, *args):
         """Return full titles for columns that contain one of the strings in the arguments

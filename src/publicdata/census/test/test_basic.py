@@ -7,12 +7,9 @@ class TestBasic(TestCase):
 
     def test_basic(self):
 
-
-        from publicdata import CensusFileUrl, CensusReporterUrl
+        from publicdata.census import CensusFileUrl, CensusReporterUrl
 
         args= dict(year=2016,release=5,table='B17001',summarylevel='tract',geoid='RI')
-
-
 
         for cls in (CensusReporterUrl, CensusFileUrl, ):
 
@@ -101,6 +98,15 @@ class TestBasic(TestCase):
         #    print(c.unique_id, c.sex, c.race, c.age, c.poverty_status)
 
         print(df.head())
+
+
+    def test_multi_index(self):
+
+        import rowgenerators as rg
+
+        df = rg.dataframe('census://RI/140/B17001').min
+        print(df.head())
+
 
 
 

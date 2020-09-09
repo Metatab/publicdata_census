@@ -42,12 +42,13 @@ class CensusUrl(Url):
 
             parts += [kwargs.get('geoid'), kwargs.get('summarylevel'), kwargs.get('table')]
 
+
             if len(parts) == 3:
-                url = "{}://{}/{}/{}".format(self.proto, *parts )
+                url = "{}://{}/{}/{}".format('census', *parts )
             elif len(parts) == 4: # Form for censusgeo urls
-                url = "{}://{}/{}/{}/{}".format(self.proto, *parts )
+                url = "{}://{}/{}/{}/{}".format('census', *parts )
             else:
-                url = "{}:/{}/{}/{}/{}/{}".format(self.proto, *parts)
+                url = "{}:/{}/{}/{}/{}/{}".format('census', *parts)
 
 
         super().__init__(url, downloader, **kwargs)

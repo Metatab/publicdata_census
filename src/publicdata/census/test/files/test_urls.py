@@ -132,8 +132,4 @@ class BasicTests(unittest.TestCase):
                     u = parse_app_url(us)
                     print(type(u), u)
                     r = u.get_resource().get_target()
-
-                    #for row in islice(r.generator, 2):
-                    #    print(row)
-
                     break

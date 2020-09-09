@@ -6,7 +6,7 @@ def make_citation_dict(t):
     """
 
     from datetime import datetime
-    from appurl import Url
+    from rowgenerators.appurl import Url
 
     try:
         if Url(t.url).proto == 'censusreporter':
