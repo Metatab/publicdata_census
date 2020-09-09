@@ -1,0 +1,113 @@
+publicdata.census package
+=========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   publicdata.census.api
+   publicdata.census.censusreporter
+   publicdata.census.files
+   publicdata.census.test
+
+Submodules
+----------
+
+publicdata.census.appurl module
+-------------------------------
+
+.. automodule:: publicdata.census.appurl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.bib module
+----------------------------
+
+.. automodule:: publicdata.census.bib
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.dataframe module
+----------------------------------
+
+.. automodule:: publicdata.census.dataframe
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.dimensions module
+-----------------------------------
+
+.. automodule:: publicdata.census.dimensions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.exceptions module
+-----------------------------------
+
+.. automodule:: publicdata.census.exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.func module
+-----------------------------
+
+.. automodule:: publicdata.census.func
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.geocode module
+--------------------------------
+
+.. automodule:: publicdata.census.geocode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.groupby module
+--------------------------------
+
+.. automodule:: publicdata.census.groupby
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.series module
+-------------------------------
+
+.. automodule:: publicdata.census.series
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.util module
+-----------------------------
+
+.. automodule:: publicdata.census.util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.varrep module
+-------------------------------
+
+.. automodule:: publicdata.census.varrep
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census
+   :members:
+   :undoc-members:
+   :show-inheritance:

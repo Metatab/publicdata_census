@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.files.metafiles &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.files.metafiles</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the</span>
+<span class="c1"># MIT License, included in this distribution as LICENSE</span>
+
+
+<span class="sd">&quot;&quot;&quot;Classes to acess metadata files&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.files.url_templates</span> <span class="kn">import</span> <span class="n">table_shell_url</span><span class="p">,</span> <span class="n">table_lookup_url</span><span class="p">,</span> <span class="n">seq_estimate_url</span><span class="p">,</span> <span class="n">seq_margin_url</span><span class="p">,</span> \
+    <span class="n">seq_header_url</span><span class="p">,</span> <span class="n">geo_header_url</span><span class="p">,</span> <span class="n">geo_url</span>
+
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+
+
+<span class="n">race_iterations</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>   <span class="s1">&#39;White&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>   <span class="s1">&#39;Black or African American&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;aian&#39;</span><span class="p">,</span>    <span class="s1">&#39;American Indian and Alaska Native&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;asian&#39;</span><span class="p">,</span>   <span class="s1">&#39;Asian&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;nhopi&#39;</span><span class="p">,</span>   <span class="s1">&#39;Native Hawaiian and Other Pacific Islander&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">,</span>   <span class="s1">&#39;Some Other Race&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;many&#39;</span><span class="p">,</span>    <span class="s1">&#39;Two or More Races&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;nhwhite&#39;</span><span class="p">,</span> <span class="s1">&#39;White Alone, Not Hispanic or Latino&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;nhisp&#39;</span><span class="p">,</span>   <span class="s1">&#39;Not Hispanic or Latino&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;hisp&#39;</span><span class="p">,</span>    <span class="s1">&#39;Hispanic or Latino&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;aian&#39;</span><span class="p">,</span>    <span class="s1">&#39;American Indian&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>    <span class="s1">&#39;All races&#39;</span><span class="p">)]</span>
+
+<span class="n">ri_code_map</span> <span class="o">=</span> <span class="p">{</span> <span class="n">code</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span><span class="n">race</span> <span class="k">for</span> <span class="n">code</span><span class="p">,</span> <span class="n">race</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">race_iterations</span> <span class="k">if</span> <span class="n">code</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="Table"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.metafiles.Table">[docs]</a><span class="k">class</span> <span class="nc">Table</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a  Census Table&quot;&quot;&quot;</span>
+
+    <span class="n">csv_header</span> <span class="o">=</span> <span class="s1">&#39;id seq start title universe subject&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_id</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">universe</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fileid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">startpos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unique_id</span> <span class="o">=</span> <span class="n">table_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="n">universe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">releases</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_segments</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># &gt; 1 for multi-segment tables, like b24010 or b24121</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">seq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileid</span> <span class="o">=</span> <span class="n">fileid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startpos</span> <span class="o">=</span> <span class="n">startpos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="n">subject</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">row</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unique_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">startpos</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subject</span>
+        <span class="p">]</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">race</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a race code from the table id&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">ri_code_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_id</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">column_rows</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">col_pos</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">col_pos</span><span class="p">]</span>
+            <span class="n">column_rows</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;tr&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">col_no</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">unique_id</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">short_description</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;h1&gt;Census Table </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_id</span><span class="si">}</span><span class="s2">&lt;/h1&gt;</span>
+<span class="s2">        &lt;i&gt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&lt;/i&gt;</span>
+<span class="s2">        &lt;p&gt;Universe: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="si">}</span><span class="s2">, Subject </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="si">}</span><span class="s2">&lt;/p&gt;</span>
+<span class="s2">        &lt;p&gt;Seq </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="si">}</span><span class="s2">, Start </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">startpos</span><span class="si">}</span><span class="s2">&lt;p&gt;</span>
+<span class="s2">        &lt;table&gt;</span>
+<span class="s2">        &lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Short Description&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;/tr&gt;</span>
+<span class="s2">        </span><span class="si">{</span><span class="n">column_rows</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        &lt;/table&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="Column"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.metafiles.Column">[docs]</a><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a column in a Census Table&quot;&quot;&quot;</span>
+    <span class="n">csv_header</span> <span class="o">=</span> <span class="s1">&#39;tableid id colno desc short_desc&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">table_id</span><span class="p">,</span> <span class="n">col_id</span><span class="p">,</span> <span class="n">col_no</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">short_desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seq_file_col_no</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_id</span> <span class="o">=</span> <span class="n">table_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unique_id</span> <span class="o">=</span> <span class="n">col_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">short_description</span> <span class="o">=</span> <span class="n">short_desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">long_description</span> <span class="o">=</span> <span class="n">short_desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_no</span> <span class="o">=</span> <span class="n">col_no</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq_file_col_no</span> <span class="o">=</span> <span class="n">seq_file_col_no</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">row</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">table_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unique_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">col_no</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq_file_col_no</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short_description</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">long_description</span><span class="p">,</span>
+        <span class="p">]</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="s1">&#39;male&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;male&#39;</span>
+        <span class="k">elif</span> <span class="s1">&#39;female&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;female&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;both&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">race</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">race_from_table</span> <span class="o">=</span> <span class="n">ri_code_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_id</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">race_from_table</span> <span class="ow">and</span> <span class="n">race_from_table</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">race_from_table</span>
+
+        <span class="c1"># Special case for a specific table, C02003</span>
+        <span class="k">if</span> <span class="s1">&#39;two or more races&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_description</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;many&#39;</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">code</span><span class="p">,</span> <span class="n">race</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">race_iterations</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">race</span>
+
+        <span class="c1"># Maybe there is more race information in the table title, but</span>
+        <span class="c1"># it isn&#39;t an iteration, like:</span>
+        <span class="c1"># b02015: Asian Alone By Selected Groups</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">code</span><span class="p">,</span> <span class="n">race</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">race_iterations</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">race</span>
+
+        <span class="k">return</span> <span class="s1">&#39;all&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">age_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse the description fo an age range&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">re</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="n">pats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;to&#39;</span><span class="p">:</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;lower&gt;\d+) to (?P&lt;upper&gt;\d+) years&quot;</span><span class="p">),</span>
+            <span class="s1">&#39;and&#39;</span><span class="p">:</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;lower&gt;\d+) and (?P&lt;upper&gt;\d+) years&quot;</span><span class="p">),</span>
+            <span class="s1">&#39;under&#39;</span><span class="p">:</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;under (?P&lt;upper&gt;\d+) years&quot;</span><span class="p">),</span>
+            <span class="s1">&#39;over&#39;</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;lower&gt;\d+) years and over&quot;</span><span class="p">),</span>
+            <span class="s1">&#39;single&#39;</span><span class="p">:</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;upperlower&gt;\d+) years&quot;</span><span class="p">),</span>
+
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">and</span> <span class="s1">&#39;year&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+
+            <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;1 year ago&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;year-round&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">pats</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;lower&#39;</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;upper&#39;</span><span class="p">)))</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">pats</span><span class="p">[</span><span class="s1">&#39;and&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;lower&#39;</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;upper&#39;</span><span class="p">)))</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">pats</span><span class="p">[</span><span class="s1">&#39;under&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;upper&#39;</span><span class="p">)))</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">pats</span><span class="p">[</span><span class="s1">&#39;over&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;lower&#39;</span><span class="p">)),</span> <span class="mi">120</span><span class="p">)</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">pats</span><span class="p">[</span><span class="s1">&#39;single&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;upperlower&#39;</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;upperlower&#39;</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">age</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">age_range</span>
+        <span class="k">if</span> <span class="n">ar</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{:03d}</span><span class="s2">-</span><span class="si">{:03d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">ar</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;all&#39;</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">poverty_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="n">pov_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;under 1.00&#39;</span><span class="p">:</span>              <span class="s1">&#39;lt100&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;below 100 percent of the poverty level&#39;</span><span class="p">:</span> <span class="s1">&#39;lt100&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;below poverty level&#39;</span><span class="p">:</span>     <span class="s1">&#39;lt100&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;below the poverty level&#39;</span><span class="p">:</span> <span class="s1">&#39;lt100&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;above poverty level&#39;</span><span class="p">:</span>     <span class="s1">&#39;gt100&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;above the poverty level&#39;</span><span class="p">:</span> <span class="s1">&#39;gt100&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;100 to 149 percent of the poverty level&#39;</span><span class="p">:</span> <span class="s1">&#39;100-150&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;at or above 150 percent of the poverty level&#39;</span><span class="p">:</span> <span class="s1">&#39;gt150&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;1.00 to 1.99&#39;</span><span class="p">:</span>           <span class="s1">&#39;100-200&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;2.0  and over&#39;</span><span class="p">:</span>          <span class="s1">&#39;gt200&#39;</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">term</span><span class="p">,</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">pov_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">code</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+
+<div class="viewcode-block" id="TableShell"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.metafiles.TableShell">[docs]</a><span class="k">class</span> <span class="nc">TableShell</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Access object for table shell files.</span>
+
+<span class="sd">    The Shell Files, such as:</span>
+
+<span class="sd">        https://www2.census.gov/programs-surveys/acs/summary_file/2016/documentation/user_tools/ACS2016_Table_Shells.xlsx</span>
+
+<span class="sd">    The Shell files have information about each table and columns, including:</span>
+<span class="sd">        * Table Id</span>
+<span class="sd">        * Data column line number in the table</span>
+<span class="sd">        * Column title ( called &quot;Stub&quot; )</span>
+<span class="sd">        * Which release the column is available in</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">):</span>
+        <span class="n">url_s</span> <span class="o">=</span> <span class="n">table_shell_url</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">summary_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="n">url_s</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tables</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+        <span class="n">tables</span> <span class="o">=</span> <span class="n">tables</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">iter_rp</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="n">table_id_key</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;UniqueID&#39;</span><span class="p">]:</span>  <span class="c1"># Table row</span>
+
+                <span class="k">if</span> <span class="n">table_id_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+                    <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Stub&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="s1">&#39;Universe&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Stub&#39;</span><span class="p">]:</span>
+                    <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Stub&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Universe: &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># column row</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">line_no</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Line&#39;</span><span class="p">])</span>
+
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># Probably, the line number  is a float, which indicates a header line. Header lines don&#39;t have</span>
+                    <span class="c1"># estimates associated with them, so we exclude them.</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">line_no</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="n">startpos</span> <span class="o">=</span> <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">startpos</span> <span class="ow">or</span> <span class="mi">0</span>
+
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">line_no</span><span class="p">]</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;UniqueID&#39;</span><span class="p">],</span> <span class="n">line_no</span><span class="p">,</span>
+                                                                       <span class="n">short_desc</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Stub&#39;</span><span class="p">],</span>
+                                                                       <span class="n">seq_file_col_no</span><span class="o">=</span><span class="n">line_no</span><span class="o">+</span><span class="n">startpos</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">line_no</span><span class="p">]</span><span class="o">.</span><span class="n">short_desc</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Stub&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="n">tables</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span></div>
+
+<div class="viewcode-block" id="TableLookup"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.metafiles.TableLookup">[docs]</a><span class="k">class</span> <span class="nc">TableLookup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Access object for the TableLookup files.</span>
+
+<span class="sd">    The Lookup files, such as:</span>
+
+<span class="sd">        https://www2.census.gov/programs-surveys/acs/summary_file/2017/documentation/user_tools/ACS_5yr_Seq_Table_Number_Lookup.txt</span>
+
+<span class="sd">    have information about each table and column, including:</span>
+<span class="sd">        * Table Number</span>
+<span class="sd">        * Column Line</span>
+<span class="sd">        * Table start position in sequence file</span>
+<span class="sd">        * Total cells in table and sequence</span>
+<span class="sd">        * Short column title</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">):</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">table_lookup_url</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">summary_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tables</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the local data structure from the source data structure&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">rowgenerators.appurl.file</span> <span class="kn">import</span> <span class="n">CsvFileUrl</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+        <span class="n">tables</span> <span class="o">=</span> <span class="n">tables</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">parse_app_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">get_resource</span><span class="p">()</span><span class="o">.</span><span class="n">get_target</span><span class="p">())</span>
+
+        <span class="n">csv_url</span> <span class="o">=</span> <span class="n">CsvFileUrl</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv_url</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">iter_rp</span><span class="p">:</span>
+
+            <span class="n">table_id_key</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Line Number&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="c1"># Either the table title, or the Universe row</span>
+                
+                <span class="k">if</span> <span class="s1">&#39;Universe&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table Title&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">table_id_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table ID&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table Title&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+                                                        <span class="n">seq</span><span class="o">=</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Sequence Number&#39;</span><span class="p">])],</span>
+                                                        <span class="n">startpos</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Start Position&#39;</span><span class="p">]),</span>
+                                                        <span class="n">subject</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Subject Area&#39;</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># This case is for muli-segment tables</span>
+                        <span class="k">assert</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Start Position&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">7</span><span class="p">)</span> <span class="c1"># Should always start at the beginning of the segment</span>
+
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Sequence Number&#39;</span><span class="p">]))</span>
+
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">number_of_segments</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table Title&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Universe: &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># column row</span>
+                <span class="k">try</span><span class="p">:</span>
+
+                    <span class="n">line_no</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Line Number&#39;</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">line_no</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">line_no</span><span class="p">]</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table ID&#39;</span><span class="p">],</span>
+                                                                          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table ID&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">line_no</span><span class="si">:</span><span class="s2">03</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                                                                          <span class="n">line_no</span><span class="p">,</span>
+                                                                          <span class="n">description</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table Title&#39;</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tables</span><span class="p">[</span><span class="n">table_id_key</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">line_no</span><span class="p">]</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Table Title&#39;</span><span class="p">]</span>
+
+
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="c1"># Headings, which have fractional line numebrs</span>
+                    <span class="c1"># print(row)</span>
+                    <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="n">tables</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span></div>
+
+
+<div class="viewcode-block" id="TableMeta"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.metafiles.TableMeta">[docs]</a><span class="k">class</span> <span class="nc">TableMeta</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Combines the lookup and  shell objects, but mostly just uses the TableLookup&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">=</span> <span class="n">year</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">release</span> <span class="o">=</span> <span class="n">release</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ts</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tl</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tl</span> <span class="o">=</span> <span class="n">TableLookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span><span class="n">tables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">summary_levels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dict of summary level names, numbers and descriptions&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">geoid.core</span> <span class="kn">import</span> <span class="n">names</span><span class="p">,</span> <span class="n">descriptions</span>
+
+        <span class="n">sl</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">sl_name</span><span class="p">,</span> <span class="n">sl_no</span> <span class="ow">in</span> <span class="n">names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">sl</span><span class="p">[</span><span class="n">sl_no</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;number&#39;</span><span class="p">:</span> <span class="n">sl_no</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">sl_name</span><span class="p">,</span>
+                <span class="s1">&#39;desc&#39;</span><span class="p">:</span> <span class="n">descriptions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sl_no</span><span class="p">)</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">sl</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dict of state names, numbers and abbreviations&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">geoid.core</span> <span class="kn">import</span> <span class="n">names</span>
+        <span class="kn">from</span> <span class="nn">geoid.censusnames</span> <span class="kn">import</span> <span class="n">geo_names</span><span class="p">,</span> <span class="n">stusab</span>
+
+        <span class="n">states</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">state_no</span><span class="p">,</span> <span class="n">stusab</span> <span class="ow">in</span> <span class="n">stusab</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">states</span><span class="p">[</span><span class="n">stusab</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">geo_names</span><span class="p">[(</span><span class="n">state_no</span><span class="p">,</span><span class="mi">0</span><span class="p">)],</span>
+                <span class="s1">&#39;stusab&#39;</span><span class="p">:</span> <span class="n">stusab</span><span class="p">,</span>
+                <span class="s1">&#39;number&#39;</span> <span class="p">:</span> <span class="n">state_no</span>
+            <span class="p">}</span>
+
+        <span class="n">states</span><span class="p">[</span><span class="s1">&#39;US&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;United States&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;stusab&#39;</span><span class="p">:</span> <span class="s1">&#39;US&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;number&#39;</span> <span class="p">:</span> <span class="mi">0</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">states</span>
+
+
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;h1&gt;Census Metadata </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">, release </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        &lt;table&gt;</span>
+<span class="s2">        &lt;tr&gt;&lt;td&gt;Meta Tables&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;</span>
+<span class="s2">        &lt;tr&gt;&lt;td&gt;Shell Tables&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts</span> <span class="k">else</span> <span class="mi">0</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;</span>
+<span class="s2">        &lt;tr&gt;&lt;td&gt;Lookup Tables&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tl</span> <span class="k">else</span> <span class="mi">0</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;</span>
+<span class="s2">        &lt;/table&gt;&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SequenceMeta"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.metafiles.SequenceMeta">[docs]</a><span class="k">class</span> <span class="nc">SequenceMeta</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../files.html">publicdata.census.files</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

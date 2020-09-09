@@ -1,0 +1,22 @@
+publicdata.census.censusreporter.test package
+=============================================
+
+Submodules
+----------
+
+publicdata.census.censusreporter.test.test\_censusreporter module
+-----------------------------------------------------------------
+
+.. automodule:: publicdata.census.censusreporter.test.test_censusreporter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.censusreporter.test
+   :members:
+   :undoc-members:
+   :show-inheritance:

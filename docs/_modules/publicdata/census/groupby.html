@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.groupby &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.groupby</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pandas.core.groupby</span> <span class="kn">import</span> <span class="n">SeriesGroupBy</span><span class="p">,</span> <span class="n">DataFrameGroupBy</span>
+
+<span class="kn">from</span> <span class="nn">publicdata.census.dataframe</span> <span class="kn">import</span> <span class="n">CensusDataFrame</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.series</span> <span class="kn">import</span> <span class="n">CensusSeries</span>
+
+
+<div class="viewcode-block" id="groupby"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.groupby">[docs]</a><span class="k">def</span> <span class="nf">groupby</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">by</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">CensusSeries</span><span class="p">):</span>
+        <span class="n">klass</span> <span class="o">=</span> <span class="n">CensusSeriesGroupBy</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">CensusDataFrame</span><span class="p">):</span>
+        <span class="n">klass</span> <span class="o">=</span> <span class="n">CensusDataFrameGroupBy</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;invalid type: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">klass</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">by</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CensusSeriesGroupBy"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusSeriesGroupBy">[docs]</a><span class="k">class</span> <span class="nc">CensusSeriesGroupBy</span><span class="p">(</span><span class="n">SeriesGroupBy</span><span class="p">):</span>
+
+<div class="viewcode-block" id="CensusSeriesGroupBy.sum_rs"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusSeriesGroupBy.sum_rs">[docs]</a>    <span class="k">def</span> <span class="nf">sum_rs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;root of the sum of the squares&quot;&quot;&quot;</span>
+
+        <span class="c1"># See the ACS General Handbook, Appendix A, &quot;Calculating Margins of Error for Derived Estimates&quot;.</span>
+        <span class="c1"># (https://www.census.gov/content/dam/Census/library/publications/2008/acs/ACSGeneralHandbook.pdf)</span>
+        <span class="c1"># for a guide to these calculations.</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m90</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="CensusDataFrameGroupBy"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusDataFrameGroupBy">[docs]</a><span class="k">class</span> <span class="nc">CensusDataFrameGroupBy</span><span class="p">(</span><span class="n">DataFrameGroupBy</span><span class="p">):</span>
+
+
+<div class="viewcode-block" id="CensusDataFrameGroupBy.sum_m"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusDataFrameGroupBy.sum_m">[docs]</a>    <span class="k">def</span> <span class="nf">sum_m</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;root of the sum of the squares&quot;&quot;&quot;</span>
+
+        <span class="c1"># See the ACS General Handbook, Appendix A, &quot;Calculating Margins of Error for Derived Estimates&quot;.</span>
+        <span class="c1"># (https://www.census.gov/content/dam/Census/library/publications/2008/acs/ACSGeneralHandbook.pdf)</span>
+        <span class="c1"># for a guide to these calculations.</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m90</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CensusDataFrameGroupBy.aggregate"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusDataFrameGroupBy.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="n">agg</span> <span class="o">=</span> <span class="n">aggregate</span>
+
+
+    <span class="k">def</span> <span class="nf">_m_agg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">):</span>
+
+        <span class="n">cf</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">object</span><span class="p">:</span>
+                <span class="k">continue</span> <span class="c1"># Skip strings?</span>
+
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_m90&#39;</span><span class="p">):</span>
+                <span class="n">cf</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">f2</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cf</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">f1</span><span class="p">]</span>
+
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">cf</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CensusDataFrameGroupBy.sum"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusDataFrameGroupBy.sum">[docs]</a>    <span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">publicdata.censusreporter.func</span> <span class="kn">import</span> <span class="n">sum_rs</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_agg</span><span class="p">(</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span><span class="n">sum_rs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CensusDataFrameGroupBy.mean"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.groupby.CensusDataFrameGroupBy.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">publicdata.censusreporter.func</span> <span class="kn">import</span> <span class="n">mean_m</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_agg</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">mean_m</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

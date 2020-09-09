@@ -1,0 +1,46 @@
+publicdata.census.files package
+===============================
+
+Submodules
+----------
+
+publicdata.census.files.appurl module
+-------------------------------------
+
+.. automodule:: publicdata.census.files.appurl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.files.generators module
+-----------------------------------------
+
+.. automodule:: publicdata.census.files.generators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.files.metafiles module
+----------------------------------------
+
+.. automodule:: publicdata.census.files.metafiles
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.files.url\_templates module
+---------------------------------------------
+
+.. automodule:: publicdata.census.files.url_templates
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.files
+   :members:
+   :undoc-members:
+   :show-inheritance:

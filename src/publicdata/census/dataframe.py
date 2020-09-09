@@ -64,8 +64,7 @@ class CensusDataFrame(pd.DataFrame):
     def search_columns(self, *args):
         """Return full titles for columns that contain one of the strings in the arguments
 
-        :param *args: String arguments, or compiled regular expressions
-
+        :param args: String arguments, or compiled regular expressions
 
         """
 

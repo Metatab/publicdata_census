@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.censusreporter.test.test_censusreporter &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.censusreporter.test.test_censusreporter</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">rowgenerators.appurl</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+
+
+<div class="viewcode-block" id="test_data"><a class="viewcode-back" href="../../../../../api/publicdata.census.censusreporter.test.html#publicdata.census.censusreporter.test.test_censusreporter.test_data">[docs]</a><span class="k">def</span> <span class="nf">test_data</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+
+    <span class="k">return</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="s1">&#39;test_data&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="BasicTests"><a class="viewcode-back" href="../../../../../api/publicdata.census.censusreporter.test.html#publicdata.census.censusreporter.test.test_censusreporter.BasicTests">[docs]</a><span class="k">class</span> <span class="nc">BasicTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+<div class="viewcode-block" id="BasicTests.test_basic"><a class="viewcode-back" href="../../../../../api/publicdata.census.censusreporter.test.html#publicdata.census.censusreporter.test.test_censusreporter.BasicTests.test_basic">[docs]</a>    <span class="k">def</span> <span class="nf">test_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">publicdata.census.censusreporter</span> <span class="kn">import</span> <span class="n">CensusReporterURL</span>
+        <span class="kn">from</span> <span class="nn">publicdata.census.censusreporter</span> <span class="kn">import</span> <span class="n">CensusReporterSource</span>
+
+        <span class="n">u</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;censusreporter://B01001/140/05000US06073&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">629</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">generator</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">CensusReporterURL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">CensusReporterSource</span><span class="p">)</span>
+
+        <span class="n">B01001</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">dataframe</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">3253356.0</span><span class="p">,</span> <span class="n">B01001</span><span class="o">.</span><span class="n">B01001001</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="c1">#print(B01001.titles.iloc[:2].T)</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;geoid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;B01001001&#39;</span><span class="p">,</span>  <span class="c1"># Total Population</span>
+            <span class="s1">&#39;B01001002&#39;</span><span class="p">,</span>  <span class="c1"># Total Male</span>
+            <span class="s1">&#39;B01001026&#39;</span><span class="p">,</span>  <span class="c1"># Total Female</span>
+            <span class="s1">&#39;B01001013&#39;</span><span class="p">,</span> <span class="s1">&#39;B01001014&#39;</span><span class="p">,</span>  <span class="c1"># Males, 35-39 and 40-44</span>
+            <span class="s1">&#39;B01001037&#39;</span><span class="p">,</span> <span class="s1">&#39;B01001038&#39;</span>  <span class="c1"># Female, 35-39 and 40-44</span>
+        <span class="p">]</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">B01001</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;male_35_44&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;male_35_44_m90&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sum_m</span><span class="p">(</span><span class="s1">&#39;B01001013&#39;</span><span class="p">,</span> <span class="s1">&#39;B01001014&#39;</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;female_35_44&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;female_35_44_m90&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sum_m</span><span class="p">(</span><span class="s1">&#39;B01001037&#39;</span><span class="p">,</span> <span class="s1">&#39;B01001038&#39;</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;m_ratio&#39;</span><span class="p">],</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;m_ratio_m90&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">ratio</span><span class="p">(</span><span class="s1">&#39;male_35_44&#39;</span><span class="p">,</span><span class="s1">&#39;B01001002&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">proportion</span><span class="p">(</span><span class="s1">&#39;male_35_44&#39;</span><span class="p">,</span> <span class="s1">&#39;female_35_44&#39;</span><span class="p">)))</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mf_proprtion&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mf_proprtion_m90&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">proportion</span><span class="p">(</span><span class="s1">&#39;male_35_44&#39;</span><span class="p">,</span> <span class="s1">&#39;female_35_44&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">212257.0</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">female_35_44</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">82</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">m_ratio</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_names"><a class="viewcode-back" href="../../../../../api/publicdata.census.censusreporter.test.html#publicdata.census.censusreporter.test.test_censusreporter.BasicTests.test_names">[docs]</a>    <span class="k">def</span> <span class="nf">test_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">u</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;censusreporter://05000US06073/140/B01001&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">summary_level</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasicTests.test_census_shapes"><a class="viewcode-back" href="../../../../../api/publicdata.census.censusreporter.test.html#publicdata.census.censusreporter.test.test_censusreporter.BasicTests.test_census_shapes">[docs]</a>    <span class="k">def</span> <span class="nf">test_census_shapes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">publicdata.census.censusreporter.url</span> <span class="kn">import</span> <span class="n">CensusReporterShapeURL</span>
+        <span class="kn">from</span> <span class="nn">rowgenerators.appurl.file.shapefile</span> <span class="kn">import</span> <span class="n">ShapefileUrl</span>
+        <span class="kn">from</span> <span class="nn">rowgenerators.generator.shapefile</span> <span class="kn">import</span> <span class="n">ShapefileSource</span>
+
+        <span class="n">u</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;censusreporter://05000US06073/140/B01001&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">resource_url</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;&amp;format=shp&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">CensusReporterShapeURL</span><span class="p">)</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">get_resource</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">ShapefileUrl</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/latest.zip#.%2A%5C.shp%24&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+
+        <span class="n">g</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">generator</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">ShapefileSource</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">629</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="p">))))</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_geo"><a class="viewcode-back" href="../../../../../api/publicdata.census.censusreporter.test.html#publicdata.census.censusreporter.test.test_censusreporter.BasicTests.test_geo">[docs]</a>    <span class="k">def</span> <span class="nf">test_geo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">u</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;censusreporter://05000US06073/140/B01001&#39;</span><span class="p">)</span>
+
+        <span class="n">B01001</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">dataframe</span><span class="p">()</span>
+
+        <span class="n">geo</span> <span class="o">=</span> <span class="n">B01001</span><span class="o">.</span><span class="n">geo</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">geo</span><span class="p">))</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

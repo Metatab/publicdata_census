@@ -1,0 +1,46 @@
+publicdata.census.api package
+=============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   publicdata.census.api.test
+
+Submodules
+----------
+
+publicdata.census.api.censusapi module
+--------------------------------------
+
+.. automodule:: publicdata.census.api.censusapi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.api.generator module
+--------------------------------------
+
+.. automodule:: publicdata.census.api.generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.api.url module
+--------------------------------
+
+.. automodule:: publicdata.census.api.url
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.api
+   :members:
+   :undoc-members:
+   :show-inheritance:

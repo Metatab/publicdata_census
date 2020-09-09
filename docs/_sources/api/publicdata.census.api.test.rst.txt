@@ -1,0 +1,22 @@
+publicdata.census.api.test package
+==================================
+
+Submodules
+----------
+
+publicdata.census.api.test.test\_censusapi module
+-------------------------------------------------
+
+.. automodule:: publicdata.census.api.test.test_censusapi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.api.test
+   :members:
+   :undoc-members:
+   :show-inheritance:

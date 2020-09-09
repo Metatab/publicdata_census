@@ -1,0 +1,54 @@
+publicdata.census.test.files package
+====================================
+
+Submodules
+----------
+
+publicdata.census.test.files.test\_appurls module
+-------------------------------------------------
+
+.. automodule:: publicdata.census.test.files.test_appurls
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.test.files.test\_generators module
+----------------------------------------------------
+
+.. automodule:: publicdata.census.test.files.test_generators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.test.files.test\_issues module
+------------------------------------------------
+
+.. automodule:: publicdata.census.test.files.test_issues
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.test.files.test\_meta module
+----------------------------------------------
+
+.. automodule:: publicdata.census.test.files.test_meta
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.test.files.test\_urls module
+----------------------------------------------
+
+.. automodule:: publicdata.census.test.files.test_urls
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.test.files
+   :members:
+   :undoc-members:
+   :show-inheritance:

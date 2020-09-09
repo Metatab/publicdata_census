@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.censusreporter.url &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.censusreporter.url</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the</span>
+<span class="c1"># MIT License, included in this distribution as LICENSE</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.appurl</span> <span class="kn">import</span> <span class="n">CensusUrl</span>
+
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+<span class="kn">from</span> <span class="nn">rowgenerators.appurl.web</span> <span class="kn">import</span> <span class="n">WebUrl</span>
+<span class="kn">from</span> <span class="nn">rowgenerators.exceptions</span> <span class="kn">import</span> <span class="n">AppUrlError</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.censusreporter.jsonurl</span> <span class="kn">import</span> <span class="n">CensusReporterJsonUrl</span>
+
+
+<div class="viewcode-block" id="CensusReporterUrl"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterUrl">[docs]</a><span class="k">class</span> <span class="nc">CensusReporterUrl</span><span class="p">(</span><span class="n">CensusUrl</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A URL for censusreporter tables.</span>
+
+<span class="sd">    General form:</span>
+
+<span class="sd">        censusreporter:&lt;table_id&gt;/&lt;summary_level&gt;/&lt;geoid&gt;</span>
+
+<span class="sd">    for instance:</span>
+
+<span class="sd">        censusreporter:B17001/140/05000US06073</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">api_host</span> <span class="o">=</span> <span class="s1">&#39;api.censusreporter.org/1.0&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proto</span> <span class="o">=</span> <span class="s1">&#39;censusreporter&#39;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">downloader</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">geo_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the geo version of this URL&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">CensusReporterShapeURL</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">downloader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_downloader</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_match</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;censusreporter&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">resource_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">WebUrl</span><span class="p">(</span><span class="s2">&quot;http://</span><span class="si">{host}</span><span class="s2">/data/show/latest?table_ids=</span><span class="si">{table_id}</span><span class="s2">&amp;geo_ids=</span><span class="si">{sl}</span><span class="s2">|</span><span class="si">{geoid}</span><span class="s2">&quot;</span> \
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_host</span><span class="p">,</span><span class="n">table_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tableid</span><span class="p">,</span> <span class="n">sl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">summary_level</span><span class="p">,</span> <span class="n">geoid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">geoid</span><span class="p">),</span>
+                      <span class="n">downloader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">downloader</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CensusReporterUrl.get_resource"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterUrl.get_resource">[docs]</a>    <span class="k">def</span> <span class="nf">get_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downloader</span><span class="o">.</span><span class="n">cache</span>
+
+        <span class="k">if</span> <span class="n">cache</span> <span class="ow">and</span> <span class="n">cache</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_key</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resource_url</span><span class="p">)</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">cache</span><span class="p">:</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_key</span><span class="p">),</span> <span class="n">recreate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">settext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+
+        <span class="n">pu</span> <span class="o">=</span>  <span class="n">parse_app_url</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">getsyspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_key</span><span class="p">),</span>
+                             <span class="n">target_file</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">path_parts</span><span class="p">),</span>
+                             <span class="p">)</span><span class="o">.</span><span class="n">as_type</span><span class="p">(</span><span class="n">CensusReporterJsonUrl</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pu</span></div>
+
+<div class="viewcode-block" id="CensusReporterUrl.get_target"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterUrl.get_target">[docs]</a>    <span class="k">def</span> <span class="nf">get_target</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># get_resource returns a CensusReporterJsonUrl so this should never be called</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+
+<span class="n">CensusReporterURL</span> <span class="o">=</span> <span class="n">CensusReporterUrl</span> <span class="c1"># Legacy Name</span>
+
+<div class="viewcode-block" id="CensusReporterShapeURL"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterShapeURL">[docs]</a><span class="k">class</span> <span class="nc">CensusReporterShapeURL</span><span class="p">(</span><span class="n">CensusReporterURL</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A URL for censusreporter tables.</span>
+
+<span class="sd">    General form:</span>
+
+<span class="sd">        censusreportergeo:&lt;table_id&gt;/&lt;summary_level&gt;/&lt;geoid&gt;</span>
+
+<span class="sd">    for instance:</span>
+
+<span class="sd">        censusreportergeo:B17001/140/05000US06073</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">api_host</span> <span class="o">=</span> <span class="s1">&#39;api.censusreporter.org&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">downloader</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">=</span> <span class="s1">&#39;censusreportergeo&#39;</span>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_match</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;censusreporter&#39;</span><span class="p">)</span>
+
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">resource_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="s2">&quot;http://</span><span class="si">{host}</span><span class="s2">/1.0/data/download/latest?table_ids=</span><span class="si">{table_id}</span><span class="s2">&amp;geo_ids=</span><span class="si">{sl}</span><span class="s2">|</span><span class="si">{geoid}</span><span class="s2">&amp;format=shp&quot;</span> \
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_host</span><span class="p">,</span><span class="n">table_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tableid</span><span class="p">,</span> <span class="n">sl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">summary_level</span><span class="p">,</span> <span class="n">geoid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">geoid</span><span class="p">),</span>
+                      <span class="n">downloader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">downloader</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CensusReporterShapeURL.get_resource"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterShapeURL.get_resource">[docs]</a>    <span class="k">def</span> <span class="nf">get_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">symlink</span><span class="p">,</span> <span class="n">remove</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+
+        <span class="kn">from</span> <span class="nn">rowgenerators.appurl.file.shapefile</span> <span class="kn">import</span> <span class="n">ShapefileUrl</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">ShapefileUrl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resource_url</span><span class="o">.</span><span class="n">get_resource</span><span class="p">())</span>
+
+        <span class="c1"># The downloaded file doesn&#39;t have a .zip extension, so Fiona won&#39;t recognize</span>
+        <span class="c1"># it as a Shapeilfe ZIP archive. So, just make a link.</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">fspath</span>
+        <span class="n">pz</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s1">&#39;.zip&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">pz</span><span class="p">):</span>
+            <span class="n">remove</span><span class="p">(</span><span class="n">pz</span><span class="p">)</span>
+
+        <span class="n">symlink</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pz</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ShapefileUrl</span><span class="p">(</span><span class="n">pz</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CensusReporterShapeURL.get_target"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterShapeURL.get_target">[docs]</a>    <span class="k">def</span> <span class="nf">get_target</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CensusReporterShapeURL.join"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterShapeURL.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CensusReporterShapeURL.join_dir"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterShapeURL.join_dir">[docs]</a>    <span class="k">def</span> <span class="nf">join_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CensusReporterShapeURL.join_target"><a class="viewcode-back" href="../../../../api/publicdata.census.censusreporter.html#publicdata.census.censusreporter.url.CensusReporterShapeURL.join_target">[docs]</a>    <span class="k">def</span> <span class="nf">join_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tf</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

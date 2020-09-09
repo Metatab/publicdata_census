@@ -1,0 +1,19 @@
+publicdata package
+==================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   publicdata.census
+   publicdata.publicdata_census
+
+Module contents
+---------------
+
+.. automodule:: publicdata
+   :members:
+   :undoc-members:
+   :show-inheritance:

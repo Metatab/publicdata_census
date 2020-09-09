@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.test.files.test_urls &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.test.files.test_urls</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.files.url_templates</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+
+<div class="viewcode-block" id="test_data"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.test_data">[docs]</a><span class="k">def</span> <span class="nf">test_data</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+
+    <span class="k">return</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="s1">&#39;test_data&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="BasicTests"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests">[docs]</a><span class="k">class</span> <span class="nc">BasicTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+<div class="viewcode-block" id="BasicTests.test_inconsistent_dc_name"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_inconsistent_dc_name">[docs]</a>    <span class="k">def</span> <span class="nf">test_inconsistent_dc_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;DistrictOfColumbia&#39;</span><span class="p">,</span> <span class="n">state_name</span><span class="p">(</span><span class="s1">&#39;dc&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;DistrictofColumbia&#39;</span><span class="p">,</span> <span class="n">state_name</span><span class="p">(</span><span class="s1">&#39;dc&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BasicTests.yield_args_w_state"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.yield_args_w_state">[docs]</a>    <span class="k">def</span> <span class="nf">yield_args_w_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2014</span><span class="p">,</span> <span class="mi">2015</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">2017</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">stusab</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">,</span><span class="s1">&#39;NH&#39;</span><span class="p">,</span><span class="s1">&#39;DC&#39;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">summary_level</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="mi">140</span><span class="p">,</span><span class="mi">150</span><span class="p">]:</span>
+                        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">99</span><span class="p">]:</span>
+                            <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="n">stusab</span><span class="p">,</span>
+                                              <span class="n">summary_level</span><span class="o">=</span><span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasicTests.yield_args_wo_state"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.yield_args_wo_state">[docs]</a>    <span class="k">def</span> <span class="nf">yield_args_wo_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2011</span><span class="p">,</span><span class="mi">2012</span><span class="p">,</span><span class="mi">2013</span><span class="p">,</span><span class="mi">2014</span><span class="p">,</span><span class="mi">2015</span><span class="p">,</span><span class="mi">2016</span><span class="p">,</span><span class="mi">2017</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">summary_level</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="mi">140</span><span class="p">,</span><span class="mi">150</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">99</span><span class="p">]:</span>
+                        <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                          <span class="n">summary_level</span><span class="o">=</span><span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicTests.yield_args_releases"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.yield_args_releases">[docs]</a>    <span class="k">def</span> <span class="nf">yield_args_releases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2013</span><span class="p">,</span><span class="mi">2014</span><span class="p">,</span> <span class="mi">2015</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">2017</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">summary_level</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+                        <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                          <span class="n">summary_level</span><span class="o">=</span><span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_header_archive_url"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_header_archive_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_header_archive_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_args_wo_state</span><span class="p">():</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">header_archive_url</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>  <span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_seq_archive_url"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_seq_archive_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_seq_archive_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_args_w_state</span><span class="p">():</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">seq_archive_url</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>  <span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_seq_header_url"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_seq_header_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_seq_header_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_args_wo_state</span><span class="p">():</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">seq_header_url</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>  <span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_geo_url"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_geo_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_geo_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_args_w_state</span><span class="p">():</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">geo_url</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasicTests.test_shell_url"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_shell_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_shell_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_args_releases</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="n">table_shell_url</span><span class="p">,</span> <span class="n">table_lookup_url</span><span class="p">]:</span>
+
+                <span class="n">url</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicTests.test_seq_header"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_seq_header">[docs]</a>    <span class="k">def</span> <span class="nf">test_seq_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+
+        <span class="n">url_s</span> <span class="o">=</span> <span class="n">seq_header_url</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">summary_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+        <span class="n">u</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="n">url_s</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">generator</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">rows</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasicTests.test_dump_states"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_dump_states">[docs]</a>    <span class="k">def</span> <span class="nf">test_dump_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="kn">import</span> <span class="nn">yaml</span><span class="o">,</span> <span class="nn">requests</span>
+        <span class="kn">from</span> <span class="nn">geoid.censusnames</span> <span class="kn">import</span> <span class="n">stusab</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://raw.githubusercontent.com/jasonong/List-of-US-States/master/states.yml&#39;</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">states</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">stusab</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">states</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;abbreviation&#39;</span><span class="p">]],</span> <span class="n">v</span><span class="p">[</span><span class="s1">&#39;abbreviation&#39;</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="p">))</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasicTests.test_geo_urls"><a class="viewcode-back" href="../../../../../api/publicdata.census.test.files.html#publicdata.census.test.files.test_urls.BasicTests.test_geo_urls">[docs]</a>    <span class="k">def</span> <span class="nf">test_geo_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">islice</span>
+
+        <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">2017</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="mi">140</span><span class="p">,</span> <span class="mi">160</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">stusab</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;RI&#39;</span><span class="p">,</span><span class="s1">&#39;AZ&#39;</span><span class="p">,</span><span class="s1">&#39;NY&#39;</span><span class="p">]:</span>
+                    <span class="n">us</span> <span class="o">=</span> <span class="n">tiger_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">stusab</span><span class="p">)</span>
+
+                    <span class="n">u</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="n">us</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">u</span><span class="p">)</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">get_resource</span><span class="p">()</span><span class="o">.</span><span class="n">get_target</span><span class="p">()</span>
+                    <span class="k">break</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../../index.html">Module code</a><ul>
+  <li><a href="../../test.html">publicdata.census.test</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

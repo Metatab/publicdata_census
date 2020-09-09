@@ -1,0 +1,30 @@
+publicdata.census.test package
+==============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   publicdata.census.test.files
+
+Submodules
+----------
+
+publicdata.census.test.test\_basic module
+-----------------------------------------
+
+.. automodule:: publicdata.census.test.test_basic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.test
+   :members:
+   :undoc-members:
+   :show-inheritance:

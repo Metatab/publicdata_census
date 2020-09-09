@@ -1,27 +1,33 @@
-=================
-publicdata_census
-=================
+==================
+Census Access Urls
+==================
 
-This is the documentation of **publicdata_census**.
 
-.. note::
+This library defines a set of `Application Urls
+<https://github.com/CivicKnowledge/appurl>`_ and `Row Generators
+<https://github.com/CivicKnowledge/rowgenerators>`_ that allow access to public
+datasets. For instance, using the Census Reporter URLs, you can define access
+to a American Community Survey data table on the Census Reporter website. Then,
+using the associated Row Generator, you can download the data as a sequences of
+rows.
 
-    This is the main page of your project's `Sphinx`_ documentation.
-    It is formatted in `reStructuredText`_. Add additional pages
-    by creating rst-files in ``docs`` and adding them to the `toctree`_ below.
-    Use then `references`_ in order to link them from this page, e.g.
-    :ref:`authors` and :ref:`changes`.
+For instance, this code will return rows from ACS table B17001 for tracts in San Diego County
 
-    It is also possible to refer to the documentation of other Python packages
-    with the `Python domain syntax`_. By default you can reference the
-    documentation of `Sphinx`_, `Python`_, `NumPy`_, `SciPy`_, `matplotlib`_,
-    `Pandas`_, `Scikit-Learn`_. You can add more by extending the
-    ``intersphinx_mapping`` in your Sphinx's ``conf.py``.
+.. code-block:: python
 
-    The pretty useful extension `autodoc`_ is activated by default and lets
-    you include documentation from docstrings. Docstrings can be written in
-    `Google style`_ (recommended!), `NumPy style`_ and `classical style`_.
+    from publicdata import  parse_app_url
 
+    url = parse_app_url("census://CA/140/B17001")
+
+    # Or: url = CensusReporterUrl(table='B17001',summarylevel='140',geoid='CA')
+
+    for row in url.generator:
+        print(row)
+
+
+The library uses the appurl and rowgenerator python entrypoints, so all
+libraries that you install that use the entrypoints can be accessed via the
+``parse_app_url`` and ``get_generator`` functions.
 
 Contents
 ========
@@ -29,10 +35,14 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   General Use <census>
+   Census Files <census_files>
+   Census Reporter <census_reporter>
+   Module Reference <api/modules>
    License <license>
    Authors <authors>
    Changelog <changelog>
-   Module Reference <api/modules>
+
 
 
 Indices and tables

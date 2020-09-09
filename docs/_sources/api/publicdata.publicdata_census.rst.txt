@@ -1,0 +1,22 @@
+publicdata.publicdata\_census package
+=====================================
+
+Submodules
+----------
+
+publicdata.publicdata\_census.cli module
+----------------------------------------
+
+.. automodule:: publicdata.publicdata_census.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.publicdata_census
+   :members:
+   :undoc-members:
+   :show-inheritance:

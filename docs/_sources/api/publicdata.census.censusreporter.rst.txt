@@ -1,0 +1,54 @@
+publicdata.census.censusreporter package
+========================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   publicdata.census.censusreporter.test
+
+Submodules
+----------
+
+publicdata.census.censusreporter.exceptions module
+--------------------------------------------------
+
+.. automodule:: publicdata.census.censusreporter.exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.censusreporter.generator module
+-------------------------------------------------
+
+.. automodule:: publicdata.census.censusreporter.generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.censusreporter.jsonurl module
+-----------------------------------------------
+
+.. automodule:: publicdata.census.censusreporter.jsonurl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+publicdata.census.censusreporter.url module
+-------------------------------------------
+
+.. automodule:: publicdata.census.censusreporter.url
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: publicdata.census.censusreporter
+   :members:
+   :undoc-members:
+   :show-inheritance:

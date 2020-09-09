@@ -1,0 +1,579 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.dataframe &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.dataframe</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the</span>
+<span class="c1"># MIT License, included in this distribution as LICENSE</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="CensusDataFrame"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame">[docs]</a><span class="k">class</span> <span class="nc">CensusDataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="n">_metadata</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;title_map&#39;</span><span class="p">,</span> <span class="s1">&#39;release&#39;</span><span class="p">,</span> <span class="s1">&#39;_dataframe&#39;</span><span class="p">,</span> <span class="s1">&#39;_url&#39;</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">]</span>  <span class="c1"># Release is the Census Reporter release metadata</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">schema</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]:</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;code_title&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">schema</span><span class="p">}</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="n">e</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="n">url</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">CensusDataFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CensusDataFrame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor_sliced</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.series</span> <span class="kn">import</span> <span class="n">CensusSeries</span>
+        <span class="k">return</span> <span class="n">CensusSeries</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">titles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a copy that uses titles for column headings&quot;&quot;&quot;</span>
+
+        <span class="c1"># There is a bug elsewhere that sometimes the columns are uppercase, and sometimes</span>
+        <span class="c1"># they are lowercase.</span>
+
+
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">title_map</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span>
+                  <span class="p">[</span> <span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                           <span class="n">columns</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+                           <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a copy with a multiindex for the columns, with levels for</span>
+<span class="sd">        table name, margin/estimate, column number, and race iteration&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="CensusDataFrame.search_columns"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.search_columns">[docs]</a>    <span class="k">def</span> <span class="nf">search_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return full titles for columns that contain one of the strings in the arguments</span>
+
+<span class="sd">        :param args: String arguments, or compiled regular expressions</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">import</span> <span class="nn">re</span>
+
+        <span class="k">def</span> <span class="nf">_f</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">_pattern_type</span><span class="p">)</span> <span class="k">else</span>  <span class="n">a</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">_f</span><span class="p">()),</span> <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;code title&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">())</span></div>
+
+    <span class="k">def</span> <span class="nf">_col_name_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">key</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span>
+                <span class="n">key</span> <span class="o">==</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span>
+                <span class="n">key</span> <span class="o">==</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span>
+                <span class="n">key</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">_default_schema_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return a schema entry for columns that aren&#39;t ACS table columns</span>
+
+<span class="sd">        :param pos: Position of the column</span>
+<span class="sd">        :param c: Column name</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
+            <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
+            <span class="s1">&#39;code_title&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
+            <span class="s1">&#39;indent&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="n">pos</span>
+        <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Yield rows like a partition does, with a header first, then rows. &quot;&quot;&quot;</span>
+
+        <span class="k">yield</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">geoframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a geopandas dataframe with boundaries for the area&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="o">.</span><span class="n">geoframe</span>
+
+<div class="viewcode-block" id="CensusDataFrame.sum_m"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.sum_m">[docs]</a>    <span class="k">def</span> <span class="nf">sum_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">cols</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sum a set of Dataframe series and return the summed series and margin. The series must have names&quot;&quot;&quot;</span>
+
+        <span class="c1"># See the ACS General Handbook, Appendix A, &quot;Calculating Margins of Error for Derived Estimates&quot;.</span>
+        <span class="c1"># (https://www.census.gov/content/dam/Census/library/publications/2008/acs/ACSGeneralHandbook.pdf)</span>
+        <span class="c1"># for a guide to these calculations.</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
+
+        <span class="n">estimates</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="n">margins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">m90</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">estimates</span><span class="p">,</span> <span class="n">margins</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.add_sum_m"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.add_sum_m">[docs]</a>    <span class="k">def</span> <span class="nf">add_sum_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_name</span><span class="p">,</span> <span class="o">*</span><span class="n">cols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add new columns for the sum, plus error margins, for 2 or more other columns</span>
+
+<span class="sd">        The routine will add two new columns, one named for col_name, and one for &lt;col_name&gt;_m90</span>
+
+<span class="sd">        :param col_name: The base name of the new column</span>
+<span class="sd">        :param cols:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="p">[</span><span class="n">col_name</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="n">col_name</span> <span class="o">+</span> <span class="s1">&#39;_m90&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_m</span><span class="p">(</span><span class="o">*</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.add_rse"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.add_rse">[docs]</a>    <span class="k">def</span> <span class="nf">add_rse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">col_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new column, &lt;col_name&gt;_rse for Relative Standard Error, using &lt;col_name&gt; and &lt;col_name&gt;_m90</span>
+
+<span class="sd">        :param col_name:</span>
+<span class="sd">        :return:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">col_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">cn</span> <span class="o">+</span> <span class="s1">&#39;_rse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">rse</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.sum_col_range"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.sum_col_range">[docs]</a>    <span class="k">def</span> <span class="nf">sum_col_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sum a contiguous group of columns, and return the sum and the new margins.  &quot;&quot;&quot;</span>
+
+        <span class="n">c1</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">first</span><span class="p">]</span>
+        <span class="n">c2</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">last</span><span class="p">]</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="n">c1</span><span class="o">.</span><span class="n">col_position</span><span class="p">:</span><span class="n">c2</span><span class="o">.</span><span class="n">col_position</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">estimates</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="n">margins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">m90</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">estimates</span><span class="p">,</span> <span class="n">margins</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.ratio"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.ratio">[docs]</a>    <span class="k">def</span> <span class="nf">ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a ratio. The numerator should not be a subset of the denominator,</span>
+<span class="sd">        such as the ratio of males to females. If it is  a subset, use proportion().</span>
+
+<span class="sd">        :param n: The Numerator, a string, CensusSeries or tuple</span>
+<span class="sd">        :param d: The Denominator, a string, CensusSeries or tuple</span>
+<span class="sd">        :return: a tuple of series, the estimates and the margins</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ratio</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.proportion"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.proportion">[docs]</a>    <span class="k">def</span> <span class="nf">proportion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a proportion. The numerator should be a subset of the denominator,  such</span>
+<span class="sd">        as the proportion of females to the total population. If it is not a subset, use ratio().</span>
+
+<span class="sd">        ( I think &quot;subset&quot; mostly means that the numerator &lt; denominator )</span>
+
+<span class="sd">        :param n: The Numerator, a string, CensusSeries or tuple</span>
+<span class="sd">        :param d: The Denominator, a string, CensusSeries or tuple</span>
+<span class="sd">        :return: a tuple of series, the estimates and the margins</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ratio</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.normalize"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert any of the numerator and denominator forms into a consistent</span>
+<span class="sd">        tuple form&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">.series</span> <span class="kn">import</span> <span class="n">CensusSeries</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">m90</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">CensusSeries</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">m90</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know what to do with a </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span></div>
+
+    <span class="k">def</span> <span class="nf">_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute a ratio of a numerator and denominator, propagating errors</span>
+
+<span class="sd">        Both arguments may be one of:</span>
+<span class="sd">        * A CensusSeries for the estimate</span>
+<span class="sd">        * a string that can be resolved to a colum with .lookup()</span>
+<span class="sd">        * A tuple of names that resolve with .lookup()</span>
+
+<span class="sd">        In the tuple form, the first entry is the estimate and the second is the 90% margin</span>
+
+<span class="sd">        :param n: The Numerator, a string, CensusSeries or tuple</span>
+<span class="sd">        :param d: The Denominator, a string, CensusSeries or tuple</span>
+<span class="sd">        :return: a tuple of series, the estimates and the margins</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n</span><span class="p">,</span> <span class="n">n_m90</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">d_m90</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="n">rate</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">d</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">subset</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># From external_documentation.acs_handbook, Appendix A, &quot;Calculating MOEs for</span>
+                <span class="c1"># Derived Proportions&quot;. This is for the case when the numerator is a subset of the</span>
+                <span class="c1"># denominator</span>
+
+                <span class="c1"># In the case of a neg arg to a square root, the acs_handbook recommends using the</span>
+                <span class="c1"># method for &quot;Calculating MOEs for Derived Ratios&quot;, where the numerator</span>
+                <span class="c1"># is not a subset of the denominator. Since our numerator is a subset, the</span>
+                <span class="c1"># handbook says &quot; use the formula for derived ratios in the next section which</span>
+                <span class="c1"># will provide a conservative estimate of the MOE.&quot;</span>
+                <span class="c1"># The handbook says this case should be rare, but for this calculation, it</span>
+                <span class="c1"># happens about 50% of the time.</span>
+
+                <span class="c1"># Normal calc, from the handbook</span>
+                <span class="n">sqr</span> <span class="o">=</span> <span class="n">n_m90</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">((</span><span class="n">rate</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_m90</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+                <span class="c1"># When the sqr value is &lt;= 0, the sqrt will fail, so use the other calc in those cases</span>
+                <span class="n">sqrn</span> <span class="o">=</span> <span class="n">sqr</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sqr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_m90</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">rate</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_m90</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+
+                <span class="c1"># Aw, hell, just punt.</span>
+                <span class="n">sqrnz</span> <span class="o">=</span> <span class="n">sqrn</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sqrn</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+
+                <span class="n">rate_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sqrnz</span><span class="p">)</span> <span class="o">/</span> <span class="n">d</span>
+
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ratio</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rate_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_m90</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">rate</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_m90</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span> <span class="o">/</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="n">rate</span><span class="p">,</span> <span class="n">rate_m</span>
+
+<div class="viewcode-block" id="CensusDataFrame.product"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.product">[docs]</a>    <span class="k">def</span> <span class="nf">product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+
+        <span class="n">a</span><span class="p">,</span> <span class="n">a_m90</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">b_m90</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+
+        <span class="n">margin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">b_m90</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">b</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">a_m90</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="n">margin</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.dim_columns"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.dim_columns">[docs]</a>    <span class="k">def</span> <span class="nf">dim_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of columns that have a particular value for age,</span>
+<span class="sd">        sex and race_eth. The `pred` parameter is a string of python</span>
+<span class="sd">        code which is evaled, with the classification dict as the local</span>
+<span class="sd">        variable context, so the code string can access these variables:</span>
+
+<span class="sd">        - sex</span>
+<span class="sd">        - age</span>
+<span class="sd">        - race-eth</span>
+<span class="sd">        - col_num</span>
+
+<span class="sd">        Col_num is the number in the last three digits of the column name</span>
+
+<span class="sd">        Some examples of predicate strings:</span>
+
+<span class="sd">        - &quot;sex == &#39;male&#39; and age != &#39;na&#39; &quot;</span>
+
+<span class="sd">        :param pred: A string of python code that is executed to find column matches.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">.dimensions</span> <span class="kn">import</span> <span class="n">classify</span>
+
+        <span class="n">out_cols</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_m90&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">cf</span> <span class="o">=</span> <span class="n">classify</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">cf</span><span class="p">[</span><span class="s1">&#39;col_num&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span>
+
+            <span class="k">if</span> <span class="nb">eval</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="p">{},</span> <span class="n">cf</span><span class="p">):</span>
+                <span class="n">out_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out_cols</span></div>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Series</span>
+        <span class="kn">from</span> <span class="nn">.series</span> <span class="kn">import</span> <span class="n">CensusSeries</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CensusDataFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">CensusDataFrame</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">_dataframe</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Series</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">CensusSeries</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">_dataframe</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="CensusDataFrame.copy"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CensusDataFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="p">)</span>
+        <span class="n">r</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">CensusDataFrame</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">title_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.set_index"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.set_index">[docs]</a>    <span class="k">def</span> <span class="nf">set_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verify_integrity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">drop</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">inplace</span><span class="p">,</span> <span class="n">verify_integrity</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">inplace</span> <span class="k">else</span> <span class="n">r</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.groupby"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.groupby">[docs]</a>    <span class="k">def</span> <span class="nf">groupby</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">group_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overrides groupby() to return CensusDataFrameGroupBy</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.groupby</span> <span class="kn">import</span> <span class="n">groupby</span>
+
+        <span class="k">if</span> <span class="n">level</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">by</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;You have to supply one of &#39;by&#39; and &#39;level&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">axis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_number</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="n">as_index</span><span class="p">,</span>
+                       <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">,</span> <span class="n">group_keys</span><span class="o">=</span><span class="n">group_keys</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="n">squeeze</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CensusDataFrame.stacked"><a class="viewcode-back" href="../../../api/publicdata.census.html#publicdata.census.dataframe.CensusDataFrame.stacked">[docs]</a>    <span class="k">def</span> <span class="nf">stacked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_dimensions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a plain Dataframe in a stacked format, with a column for the column name</span>
+<span class="sd">        and one column for all margins and one for all estimates.</span>
+
+<span class="sd">        Drops the name, county and  and stusab because they get replicated once for each column.</span>
+<span class="sd">        Filter on them before stacking.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;stusab&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;county&#39;</span><span class="p">])</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="n">t</span><span class="p">[[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;_m90&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]]</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+        <span class="n">t1</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">]</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="n">t</span><span class="p">[[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;_m90&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]]</span>
+        <span class="n">t2</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_m90&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">t2</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="n">t2</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+        <span class="n">t2</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;margin&#39;</span><span class="p">]</span>
+        <span class="n">t3</span> <span class="o">=</span> <span class="n">t1</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
+        <span class="n">t3</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;geoid&#39;</span><span class="p">,</span> <span class="s1">&#39;column&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">add_dimensions</span><span class="p">:</span>
+            <span class="n">sex</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">c</span><span class="o">.</span><span class="n">unique_id</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">c</span><span class="o">.</span><span class="n">sex</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">],</span>
+                               <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;column&#39;</span><span class="p">,</span> <span class="s1">&#39;sex&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;column&#39;</span><span class="p">)</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">c</span><span class="o">.</span><span class="n">unique_id</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">c</span><span class="o">.</span><span class="n">age</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">],</span>
+                               <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;column&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;column&#39;</span><span class="p">)</span>
+            <span class="n">raceeth</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">c</span><span class="o">.</span><span class="n">unique_id</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">c</span><span class="o">.</span><span class="n">raceeth</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">],</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;column&#39;</span><span class="p">,</span> <span class="s1">&#39;raceeth&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;column&#39;</span><span class="p">)</span>
+            <span class="n">pov</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">c</span><span class="o">.</span><span class="n">unique_id</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">c</span><span class="o">.</span><span class="n">poverty_status</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">],</span>
+                               <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;column&#39;</span><span class="p">,</span> <span class="s1">&#39;poverty_status&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;column&#39;</span><span class="p">)</span>
+
+            <span class="n">t4</span> <span class="o">=</span> <span class="n">t3</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sex</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">age</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raceeth</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pov</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+            <span class="c1"># Move the margin and estimate columns to the end</span>
+            <span class="k">return</span> <span class="n">t4</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">t4</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">t3</span></div>
+
+    <span class="c1">##</span>
+    <span class="c1">## Extension Points</span>
+    <span class="c1">##</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CensusDataFrame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor_sliced</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.series</span> <span class="kn">import</span> <span class="n">CensusSeries</span>
+        <span class="k">return</span> <span class="n">CensusSeries</span>
+
+    <span class="k">def</span> <span class="nf">_getitem_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return a column from a name</span>
+
+<span class="sd">        :param key:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CensusDataFrame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_getitem_column</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">parent_frame</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c</span>
+
+    <span class="k">def</span> <span class="nf">_getitem_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a set of columns. The keys can be any of the names for the column, the</span>
+<span class="sd">        method automatically adds _m90 columns&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+
+            <span class="c1"># augmented_key is the original list of columns with the _m90 columns added</span>
+            <span class="n">augmented_key</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">augmented_key</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_name</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">col_name</span> <span class="o">+</span> <span class="s1">&#39;_m90&#39;</span><span class="p">]</span>
+                    <span class="n">augmented_key</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_name</span> <span class="o">+</span> <span class="s1">&#39;_m90&#39;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="n">df</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_getitem_array</span><span class="p">(</span><span class="n">augmented_key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_getitem_array</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">id</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

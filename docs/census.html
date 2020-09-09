@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Census &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="&lt;no title&gt;" href="census_files.html" />
+    <link rel="prev" title="Census Access Urls" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="us-census">
+<h1>US Census<a class="headerlink" href="#us-census" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="census-urls">
+<h2>Census Urls<a class="headerlink" href="#census-urls" title="Permalink to this headline">¶</a></h2>
+<p>There are two URL types for Census access, distinguished by their scheme names,
+<code class="docutils literal notranslate"><span class="pre">census</span></code> and <code class="docutils literal notranslate"><span class="pre">censusreporter</span></code>. The <code class="docutils literal notranslate"><span class="pre">census</span></code> URLs download files directly
+from the Census department’s FTP servers, and the <code class="docutils literal notranslate"><span class="pre">censusreporter</span></code> urls get
+data from the CensusReporter.org apis. Both also have access to geography
+files, but the <code class="docutils literal notranslate"><span class="pre">census</span></code> urls have a richer interface for metadata.</p>
+<p>The general schemes for the URLS are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">scheme</span><span class="o">&gt;</span><span class="p">:</span><span class="o">/</span><span class="p">[</span><span class="o">/</span><span class="n">year</span><span class="o">/</span><span class="n">release</span><span class="p">]</span><span class="o">/&lt;</span><span class="n">geoid</span><span class="o">&gt;/&lt;</span><span class="n">summarylevel</span><span class="o">&gt;/&lt;</span><span class="n">table</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p>&lt;scheme&gt; is either <code class="docutils literal notranslate"><span class="pre">census</span></code> or <code class="docutils literal notranslate"><span class="pre">censusreporter</span></code></p></li>
+<li><p>&lt;year&gt; is the year of the release, which work from 2010 on for <code class="docutils literal notranslate"><span class="pre">census</span></code> urls and are ignored for <code class="docutils literal notranslate"><span class="pre">censusreporter</span></code></p></li>
+<li><p>&lt;release&gt; is 1, 3, or 5, and is applied or ignored as with &lt;year&gt;</p></li>
+<li><p>&lt;geoid&gt; defined the geographic region that contains the returned data, and is either an ACS style geoid, or a state abbreviation, or ‘US’</p></li>
+<li><p>&lt;summarylevel&gt; is either a summary level numeric code, or a summary level name</p></li>
+<li><p>&lt;table&gt; is a census table id</p></li>
+</ul>
+<p>The Geoid is an ACS style geoid, such as ‘04000US06’, or a US state abbreviation ( ‘AZ’ or “CA’ ) or ‘US’. The geoid defines the area that contains the data to be returned. See the <a class="reference external" href="https://census.missouri.edu/geocodes/">Geographic Codes Lookup</a> web application for more details about geoids and how to find them.</p>
+<p>The summary level can also be expressed in text names, as described in the <a class="reference external" href="https://github.com/Metatab/geoid">geoid package documentation</a>
+. The most common of these names, and their numeric codes, are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;us&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+<span class="s1">&#39;region&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+<span class="s1">&#39;division&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+<span class="s1">&#39;county&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+<span class="s1">&#39;cosub&#39;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
+<span class="s1">&#39;place&#39;</span><span class="p">:</span> <span class="mi">160</span><span class="p">,</span>
+<span class="s1">&#39;ua&#39;</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+<span class="s1">&#39;tract&#39;</span><span class="p">:</span> <span class="mi">140</span><span class="p">,</span>
+<span class="s1">&#39;blockgroup&#39;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span>
+<span class="s1">&#39;block&#39;</span><span class="p">:</span> <span class="mi">101</span><span class="p">,</span>
+<span class="s1">&#39;sdelm&#39;</span><span class="p">:</span> <span class="mi">950</span><span class="p">,</span>
+<span class="s1">&#39;sdsec&#39;</span><span class="p">:</span> <span class="mi">960</span><span class="p">,</span>
+<span class="s1">&#39;sduni&#39;</span><span class="p">:</span> <span class="mi">970</span><span class="p">,</span>
+<span class="s1">&#39;zcta&#39;</span><span class="p">:</span> <span class="mi">860</span>
+</pre></div>
+</div>
+<p>Usually the geoid is the abbreviation for a state or a county, and then the summary level describes the type of sub region within that state or county. For instance, all of the counties in California is ‘04000US06/140’ or ‘CA/county’, and all of the places in San Diego county is ‘05000US06073/160’ or ‘05000US06073/place’.</p>
+<p>You can look up the table ideas at <a class="reference external" href="http://censusreporter.org">Census Reporter</a> or <a class="reference external" href="https://factfinder.census.gov/">American Fact Finder</a> .</p>
+<div class="section" id="id1">
+<h3>Census Reporter<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The general process for creating a census package is similar to the package process described in the <a class="reference external" href="https://github.com/CivicKnowledge/metatab-py/blob/master/docs/GettingStarted.rst">Getting Started tutorial,</a> but with a <code class="docutils literal notranslate"><span class="pre">DataFile</span></code> term that uses a program to fetch data from Census Reporter. First we’ll create the program, then link it into a Metatab package. The program uses the <cite>pandas-reporter</cite> module, so the reation process is very similar to the <a class="reference external" href="https://github.com/CivicKnowledge/pandas-reporter/blob/master/test/Pandas%20Reporter%20Examples.ipynb">Pandas-Reporter tutorial.</a></p>
+</div>
+<div class="section" id="creating-a-census-program">
+<h3>Creating a Census program<a class="headerlink" href="#creating-a-census-program" title="Permalink to this headline">¶</a></h3>
+<p>First, read the <a class="reference external" href="https://github.com/CivicKnowledge/pandas-reporter/blob/master/test/Pandas%20Reporter%20Examples.ipynb">Pandas-Reporter tutorial.</a> You’l need to install the <cite>pandasreporter</cite> python module.</p>
+<p>Then, visit <a class="reference external" href="http://censusreporter.org">Census Reporter</a> to locate information about tables, regions and  and summary levels.</p>
+<p>For this tutorial, we will use these tables:</p>
+<ul class="simple">
+<li><p>B17001, Poverty Status by Sex by Age</p></li>
+<li><p>B17024, Age by Ratio of Income to Poverty Level</p></li>
+<li><p>B17017, Poverty Status by Household Type by Age of Householder</p></li>
+</ul>
+<p>For the geography, we will use tracts in San Diego County.</p>
+<p>To find the geoid code for San Diego County, visit the main page at <a class="reference external" href="http://censusreporter.org">Census Reporter</a> and search for San Diego County. You should get a <cite>profile page for the county &lt;https://censusreporter.org/profiles/05000US06073-san-diego-county-ca/&gt; ‘_. In the URL for the page, you should see the code `05000US06073</cite>. This code is the geoid for San Diego County.</p>
+<p>Next, visit the page for <a class="reference external" href="https://www.census.gov/geo/maps-data/data/summary_level.html">Cartographic Boundary File Summary Level Codes</a> to get the summary level code for tracts. It is actually listed by all of its components, in this case,       “State-County-Census Tract.” It is code “140”. ( BTW, that is a string, not a number. )</p>
+<p>The start of our program is similar to the program in the <a class="reference external" href="https://github.com/CivicKnowledge/pandas-reporter/blob/master/test/Pandas%20Reporter%20Examples.ipynb">Pandas-Reporter tutorial.</a>, except using the table, summary level and region codes for this example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>$ mkdir example-data-package
+$ cd example-data-package
+$ metapack -c
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-census-reporter-urls">
+<h3>Creating Census Reporter Urls<a class="headerlink" href="#creating-census-reporter-urls" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">censusreporter:</span></code>  url scheme retrieves data from <a class="reference external" href="http://censusreporter.org">Census Reporter</a> . The structure of the URL is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">censusreporter</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">geoid</span><span class="o">&gt;/&lt;</span><span class="n">summarylevel</span><span class="o">&gt;/&lt;</span><span class="n">table</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Or, use the URL directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">publicdata</span> <span class="kn">import</span> <span class="n">CensusReporterUrl</span>
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">Downloader</span>
+<span class="n">CensusReporterUrl</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="s1">&#39;B17001&#39;</span><span class="p">,</span><span class="n">summarylevel</span><span class="o">=</span><span class="s1">&#39;140&#39;</span><span class="p">,</span><span class="n">geoid</span><span class="o">=</span><span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="n">Downloader</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>So, to get the population  of all of the counties in California:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">CensusReporterUrl</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="s1">&#39;B17001&#39;</span><span class="p">,</span><span class="n">summarylevel</span><span class="o">=</span><span class="s1">&#39;county&#39;</span><span class="p">,</span><span class="n">geoid</span><span class="o">=</span><span class="s1">&#39;CA&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+<span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;census://CA/county/B17001&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">geoid</span></code> may either be a census Geoid ( like ‘04000US06’ ) , or a US state
+abbreviation, or ‘US’ for indicating all US states.</p>
+</div>
+<div class="section" id="creating-census-file-urls">
+<h3>Creating Census File Urls<a class="headerlink" href="#creating-census-file-urls" title="Permalink to this headline">¶</a></h3>
+<p>The Census file URLS retrieve data directly from the Census FTP server. You can use the same 3-part url scheme as with Census Reporter, in which case you will get the 2016 5-year ACS. Or, you can specify the year and release:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">census</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">year</span><span class="o">&gt;/&lt;</span><span class="n">release</span><span class="o">&gt;/&lt;</span><span class="n">geoid</span><span class="o">&gt;/&lt;</span><span class="n">summarylevel</span><span class="o">&gt;/&lt;</span><span class="n">table</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">census</span><span class="p">:</span><span class="o">//</span><span class="mi">2015</span><span class="o">/</span><span class="mi">5</span><span class="o">/</span><span class="n">CA</span><span class="o">/</span><span class="mi">140</span><span class="o">/</span><span class="n">B17001</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">publicdata</span> <span class="kn">import</span> <span class="n">CensusFileUrl</span>
+<span class="n">rom</span> <span class="n">rowgenerators</span> <span class="kn">import</span> <span class="nn">Downloader</span> <span class="n">CensusFileUrl</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span><span class="n">release</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">table</span><span class="o">=</span><span class="s1">&#39;B17001&#39;</span><span class="p">,</span><span class="n">summarylevel</span><span class="o">=</span><span class="s1">&#39;140&#39;</span><span class="p">,</span><span class="n">geoid</span><span class="o">=</span><span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="n">Downloader</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="census-dataframes">
+<h3>Census Dataframes<a class="headerlink" href="#census-dataframes" title="Permalink to this headline">¶</a></h3>
+<p>For a general overview of the features of the Census URLs, see the <a class="reference external" href="https://github.com/Metatab/publicdata/blob/master/notebooks/ACS.ipynb">ACS Notebook</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.dataframe</span></code> function returns a <code class="docutils literal notranslate"><span class="pre">CensusDataFrame</span></code> which has some
+special features for working with Census data, including margin-aware
+summation, ratios, proportions and margin manipulations. See the <a class="reference external" href="https://github.com/Metatab/publicdata/blob/master/notebooks/Special%20Features%20of%20Census%20Dataframe.ipynb">Special
+Features of Census Dataframes</a> notebook for details.</p>
+</div>
+<div class="section" id="census-geography">
+<h3>Census Geography<a class="headerlink" href="#census-geography" title="Permalink to this headline">¶</a></h3>
+<p>You can easily get Geopandas <code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code> objects with either the <code class="docutils literal notranslate"><span class="pre">census:</span></code> scheme, or the <code class="docutils literal notranslate"><span class="pre">censusgeo:</span></code>
+scheme. The geoframe is avilable directly from the Url, or with the <code class="docutils literal notranslate"><span class="pre">rowgenerators</span></code> package’s <code class="docutils literal notranslate"><span class="pre">geoframe()</span></code>
+convenience function/</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+<span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;census://CA/place&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">geoframe</span><span class="p">()</span>
+
+<span class="c1"># or</span>
+
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">geoframe</span>
+<span class="n">geoframe</span><span class="p">(</span><span class="s1">&#39;censusgeo://CA/place&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the state ( ‘CA’ in the examples above ) should be ‘US’ for  national regions, such as CSA and  CBSA:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">geoframe</span><span class="p">(</span><span class="s1">&#39;censusgeo://US/csa&#39;</span><span class="p">)</span>
+<span class="n">geoframe</span><span class="p">(</span><span class="s1">&#39;censusgeo://US/cbsa&#39;</span><span class="p">)</span>
+<span class="c1"># but ...</span>
+<span class="n">geoframe</span><span class="p">(</span><span class="s1">&#39;censusgeo://CA/county&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="common-operations">
+<h3>Common Operations<a class="headerlink" href="#common-operations" title="Permalink to this headline">¶</a></h3>
+<p>Construct the URL:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">url</span> <span class="o">=</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="s1">&#39;census://2015/5/CA/140/B17001&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Iterate rows, header first, then data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">url</span><span class="o">.</span><span class="n">generator</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or, to return dict-ish object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">url</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">iterrows</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;geometry])</span>
+</pre></div>
+</div>
+<p>Get a pandas dataframe ( Actually a CensusDataframe):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">url</span><span class="o">.</span><span class="n">dataframe</span>
+</pre></div>
+</div>
+<p>Get a Geopandas dataframe:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">url</span><span class="o">.</span><span class="n">geoframe</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">General Use</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#census-urls">Census Urls</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Census Access Urls</a></li>
+      <li>Next: <a href="census_files.html" title="next chapter">&lt;no title&gt;</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/census.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.api.url &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.api.url</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the</span>
+<span class="c1"># MIT License, included in this distribution as LICENSE</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.appurl</span> <span class="kn">import</span> <span class="n">CensusUrl</span>
+
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">parse_app_url</span>
+<span class="kn">from</span> <span class="nn">rowgenerators.appurl.web</span> <span class="kn">import</span> <span class="n">WebUrl</span>
+<span class="kn">from</span> <span class="nn">rowgenerators.exceptions</span> <span class="kn">import</span> <span class="n">AppUrlError</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.censusreporter.jsonurl</span> <span class="kn">import</span> <span class="n">CensusReporterJsonUrl</span>
+<span class="kn">from</span> <span class="nn">publicdata.census.api.censusapi</span> <span class="kn">import</span>  <span class="n">CensusApi</span>
+<span class="kn">from</span> <span class="nn">rowgenerators</span> <span class="kn">import</span> <span class="n">Url</span>
+
+<div class="viewcode-block" id="CensusApiUrl"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiUrl">[docs]</a><span class="k">class</span> <span class="nc">CensusApiUrl</span><span class="p">(</span><span class="n">Url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A URL for censusreporter tables.</span>
+
+<span class="sd">    General form:</span>
+
+<span class="sd">        censusapi:&lt;dataset&gt;/&lt;in_specification&gt;/&lt;for_specification&gt;#&lt;column_list&gt;</span>
+
+<span class="sd">    for instance:</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proto</span> <span class="o">=</span> <span class="s1">&#39;censusapi&#39;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">downloader</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">geo_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">geo_for</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">:</span> <span class="c1"># The url has a :// in it</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">netloc</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_match</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;censusapi&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="n">CensusApi</span><span class="p">()</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">resource_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">predicates</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">fetch_url</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">target_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">),</span>
+                             <span class="n">geo_for</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">geo_for</span><span class="p">,</span> <span class="n">geo_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">geo_in</span><span class="p">,</span> <span class="o">**</span><span class="n">predicates</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">parse_app_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">downloader</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CensusApiUrl.get_resource"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiUrl.get_resource">[docs]</a>    <span class="k">def</span> <span class="nf">get_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">ru</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resource_url</span><span class="o">.</span><span class="n">get_resource</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">CensusApiResourceUrl</span><span class="p">(</span><span class="n">ru</span><span class="p">,</span> <span class="n">downloader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">downloader</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CensusApiUrl.get_target"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiUrl.get_target">[docs]</a>    <span class="k">def</span> <span class="nf">get_target</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resource</span><span class="p">()</span><span class="o">.</span><span class="n">get_target</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the generator for this URL, if the rowgenerator package is installed.</span>
+
+<span class="sd">        :return: A row generator object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">rowgenerators.core</span> <span class="kn">import</span> <span class="n">get_generator</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resource</span><span class="p">()</span><span class="o">.</span><span class="n">get_target</span><span class="p">()</span><span class="o">.</span><span class="n">generator</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">dataframe</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cache_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the path for this url&#39;s data in the cache&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">path_parts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<div class="viewcode-block" id="CensusApiUrl.join"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiUrl.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CensusApiUrl.join_dir"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiUrl.join_dir">[docs]</a>    <span class="k">def</span> <span class="nf">join_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CensusApiUrl.join_target"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiUrl.join_target">[docs]</a>    <span class="k">def</span> <span class="nf">join_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tf</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+<span class="kn">from</span> <span class="nn">rowgenerators.generator.json</span> <span class="kn">import</span> <span class="n">JsonRowSource</span>
+<span class="kn">from</span> <span class="nn">rowgenerators.appurl.file.file</span> <span class="kn">import</span> <span class="n">FileUrl</span>
+
+
+<div class="viewcode-block" id="CensusApiResourceUrl"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiResourceUrl">[docs]</a><span class="k">class</span> <span class="nc">CensusApiResourceUrl</span><span class="p">(</span><span class="n">FileUrl</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A URL for censusreporter tables.</span>
+
+<span class="sd">    General form:</span>
+
+<span class="sd">        censusapi:&lt;dataset&gt;/&lt;in_specification&gt;/&lt;for_specification&gt;#&lt;column_list&gt;</span>
+
+<span class="sd">    for instance:</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_match</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="n">CensusApi</span><span class="p">()</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span>
+
+<div class="viewcode-block" id="CensusApiResourceUrl.get_resource"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiResourceUrl.get_resource">[docs]</a>    <span class="k">def</span> <span class="nf">get_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="CensusApiResourceUrl.get_target"><a class="viewcode-back" href="../../../../api/publicdata.census.api.html#publicdata.census.api.url.CensusApiResourceUrl.get_target">[docs]</a>    <span class="k">def</span> <span class="nf">get_target</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">JsonRowSource</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

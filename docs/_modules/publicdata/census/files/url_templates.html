@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>publicdata.census.files.url_templates &#8212; publicdata_census unknown documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for publicdata.census.files.url_templates</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the</span>
+<span class="c1"># MIT License, included in this distribution as LICENSE</span>
+
+<span class="sd">&quot;&quot;&quot;URl Template for file locations&quot;&quot;&quot;</span>
+
+<span class="n">acs_base_url</span> <span class="o">=</span> <span class="s1">&#39;https://www2.census.gov/programs-surveys/acs/summary_file/</span><span class="si">{year}</span><span class="s1">&#39;</span>
+<span class="n">acs_data_base_url</span> <span class="o">=</span> <span class="n">acs_base_url</span><span class="o">+</span><span class="s1">&#39;/data&#39;</span>
+
+<div class="viewcode-block" id="geo_name"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.geo_name">[docs]</a><span class="k">def</span> <span class="nf">geo_name</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Resolve a year, release and summar level number into a URL geography group name&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">summary_level</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">140</span><span class="p">,</span> <span class="mi">150</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Tracts_Block_Groups_Only&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;All_Geographies_Not_Tracts_Block_Groups&#39;</span></div>
+
+<div class="viewcode-block" id="state_name"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.state_name">[docs]</a><span class="k">def</span> <span class="nf">state_name</span><span class="p">(</span><span class="n">stusab</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">):</span>
+
+    <span class="n">states_by_stusab</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">states</span><span class="p">}</span>
+
+    <span class="c1"># The code fo DC is inconsistent</span>
+    <span class="n">yr_code</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">release</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;DC&#39;</span> <span class="ow">and</span> <span class="n">release</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;DistrictofColumbia&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">states_by_stusab</span><span class="p">[</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span></div>
+
+<span class="c1"># Only US states and PR; excludes most US territories.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;AK&#39;</span><span class="p">,</span> <span class="s1">&#39;Alaska&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;Alabama&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;AZ&#39;</span><span class="p">,</span> <span class="s1">&#39;Arizona&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;AR&#39;</span><span class="p">,</span> <span class="s1">&#39;Arkansas&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="s1">&#39;California&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;CO&#39;</span><span class="p">,</span> <span class="s1">&#39;Colorado&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;CT&#39;</span><span class="p">,</span> <span class="s1">&#39;Connecticut&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;DE&#39;</span><span class="p">,</span> <span class="s1">&#39;Delaware&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="s1">&#39;DC&#39;</span><span class="p">,</span> <span class="s1">&#39;DistrictOfColumbia&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="s1">&#39;FL&#39;</span><span class="p">,</span> <span class="s1">&#39;Florida&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;GA&#39;</span><span class="p">,</span> <span class="s1">&#39;Georgia&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;HI&#39;</span><span class="p">,</span> <span class="s1">&#39;Hawaii&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;Idaho&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="s1">&#39;IL&#39;</span><span class="p">,</span> <span class="s1">&#39;Illinois&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="s1">&#39;IN&#39;</span><span class="p">,</span> <span class="s1">&#39;Indiana&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">19</span><span class="p">,</span> <span class="s1">&#39;IA&#39;</span><span class="p">,</span> <span class="s1">&#39;Iowa&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;KS&#39;</span><span class="p">,</span> <span class="s1">&#39;Kansas&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="s1">&#39;KY&#39;</span><span class="p">,</span> <span class="s1">&#39;Kentucky&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="s1">&#39;LA&#39;</span><span class="p">,</span> <span class="s1">&#39;Louisiana&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="s1">&#39;ME&#39;</span><span class="p">,</span> <span class="s1">&#39;Maine&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="s1">&#39;MD&#39;</span><span class="p">,</span> <span class="s1">&#39;Maryland&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;MA&#39;</span><span class="p">,</span> <span class="s1">&#39;Massachusetts&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">26</span><span class="p">,</span> <span class="s1">&#39;MI&#39;</span><span class="p">,</span> <span class="s1">&#39;Michigan&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">27</span><span class="p">,</span> <span class="s1">&#39;MN&#39;</span><span class="p">,</span> <span class="s1">&#39;Minnesota&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="s1">&#39;MS&#39;</span><span class="p">,</span> <span class="s1">&#39;Mississippi&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">29</span><span class="p">,</span> <span class="s1">&#39;MO&#39;</span><span class="p">,</span> <span class="s1">&#39;Missouri&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;MT&#39;</span><span class="p">,</span> <span class="s1">&#39;Montana&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">31</span><span class="p">,</span> <span class="s1">&#39;NE&#39;</span><span class="p">,</span> <span class="s1">&#39;Nebraska&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;NV&#39;</span><span class="p">,</span> <span class="s1">&#39;Nevada&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">33</span><span class="p">,</span> <span class="s1">&#39;NH&#39;</span><span class="p">,</span> <span class="s1">&#39;NewHampshire&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">34</span><span class="p">,</span> <span class="s1">&#39;NJ&#39;</span><span class="p">,</span> <span class="s1">&#39;NewJersey&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">35</span><span class="p">,</span> <span class="s1">&#39;NM&#39;</span><span class="p">,</span> <span class="s1">&#39;NewMexico&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">36</span><span class="p">,</span> <span class="s1">&#39;NY&#39;</span><span class="p">,</span> <span class="s1">&#39;NewYork&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">37</span><span class="p">,</span> <span class="s1">&#39;NC&#39;</span><span class="p">,</span> <span class="s1">&#39;NorthCarolina&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">38</span><span class="p">,</span> <span class="s1">&#39;ND&#39;</span><span class="p">,</span> <span class="s1">&#39;NorthDakota&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">39</span><span class="p">,</span> <span class="s1">&#39;OH&#39;</span><span class="p">,</span> <span class="s1">&#39;Ohio&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="s1">&#39;OK&#39;</span><span class="p">,</span> <span class="s1">&#39;Oklahoma&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">41</span><span class="p">,</span> <span class="s1">&#39;OR&#39;</span><span class="p">,</span> <span class="s1">&#39;Oregon&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="s1">&#39;PA&#39;</span><span class="p">,</span> <span class="s1">&#39;Pennsylvania&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">72</span><span class="p">,</span> <span class="s1">&#39;PR&#39;</span><span class="p">,</span> <span class="s1">&#39;PuertoRico&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">44</span><span class="p">,</span> <span class="s1">&#39;RI&#39;</span><span class="p">,</span> <span class="s1">&#39;RhodeIsland&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="s1">&#39;SC&#39;</span><span class="p">,</span> <span class="s1">&#39;SouthCarolina&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">46</span><span class="p">,</span> <span class="s1">&#39;SD&#39;</span><span class="p">,</span> <span class="s1">&#39;SouthDakota&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">47</span><span class="p">,</span> <span class="s1">&#39;TN&#39;</span><span class="p">,</span> <span class="s1">&#39;Tennessee&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="s1">&#39;TX&#39;</span><span class="p">,</span> <span class="s1">&#39;Texas&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">49</span><span class="p">,</span> <span class="s1">&#39;UT&#39;</span><span class="p">,</span> <span class="s1">&#39;Utah&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;VT&#39;</span><span class="p">,</span> <span class="s1">&#39;Vermont&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">51</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">,</span> <span class="s1">&#39;Virginia&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">53</span><span class="p">,</span> <span class="s1">&#39;WA&#39;</span><span class="p">,</span> <span class="s1">&#39;Washington&#39;</span><span class="p">),</span>
+          <span class="p">(</span><span class="mi">54</span><span class="p">,</span> <span class="s1">&#39;WV&#39;</span><span class="p">,</span> <span class="s1">&#39;WestVirginia&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="s1">&#39;WI&#39;</span><span class="p">,</span> <span class="s1">&#39;Wisconsin&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">56</span><span class="p">,</span> <span class="s1">&#39;WY&#39;</span><span class="p">,</span> <span class="s1">&#39;Wyoming&#39;</span><span class="p">)]</span>
+
+<span class="c1">##</span>
+<span class="c1">## Header files</span>
+<span class="c1">##</span>
+
+<span class="n">header_template</span> <span class="o">=</span> <span class="n">acs_data_base_url</span> <span class="o">+</span> <span class="s1">&#39;/</span><span class="si">{year}</span><span class="s1">_</span><span class="si">{release}</span><span class="s1">yr_Summary_FileTemplates.zip&#39;</span>
+
+
+
+<span class="n">geo_header_resource_template</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{year}</span><span class="s1">_SFGeoFileTemplate.xls&#39;</span>
+
+<div class="viewcode-block" id="header_archive_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.header_archive_url">[docs]</a><span class="k">def</span> <span class="nf">header_archive_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the URL to the summary file header archive file&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">header_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span>
+        <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">),</span>
+        <span class="n">geo_name</span><span class="o">=</span><span class="n">geo_name</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">summary_level</span><span class="o">=</span><span class="n">summary_level</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="seq_header_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.seq_header_url">[docs]</a><span class="k">def</span> <span class="nf">seq_header_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the URL to the summary file header, possibly within an  archive file&quot;&quot;&quot;</span>
+
+    <span class="n">hau</span> <span class="o">=</span>  <span class="n">header_archive_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">year</span> <span class="o">&lt;</span> <span class="mi">2017</span><span class="p">:</span>
+        <span class="n">seq_header_resource_template</span> <span class="o">=</span> <span class="s1">&#39;Seq</span><span class="si">{seq}</span><span class="s1">.xls&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">seq_header_resource_template</span> <span class="o">=</span> <span class="s1">&#39;seq</span><span class="si">{seq}</span><span class="s1">.xls&#39;</span>
+
+    <span class="k">return</span> <span class="n">hau</span><span class="o">+</span><span class="s1">&#39;#&#39;</span><span class="o">+</span><span class="n">seq_header_resource_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="geo_header_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.geo_header_url">[docs]</a><span class="k">def</span> <span class="nf">geo_header_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the URL to the summary file header, possibly within an  archive file&quot;&quot;&quot;</span>
+    <span class="n">hau</span> <span class="o">=</span>  <span class="n">header_archive_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hau</span><span class="o">+</span><span class="s1">&#39;#&#39;</span><span class="o">+</span><span class="n">geo_header_resource_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">)</span></div>
+
+<span class="c1">##</span>
+<span class="c1">## Sequence files</span>
+<span class="c1">##</span>
+
+<span class="n">seq_file_templates</span> <span class="o">=</span> <span class="n">acs_data_base_url</span> <span class="o">+</span> \
+                     <span class="s1">&#39;/</span><span class="si">{release}</span><span class="s1">_year_seq_by_state/</span><span class="si">{stname_title}</span><span class="s1">/</span><span class="si">{geo_name_slash}</span><span class="s1">&#39;</span> <span class="o">+</span> \
+                     <span class="s1">&#39;</span><span class="si">{year}{release}{stusab}{seq4}</span><span class="s1">000.zip&#39;</span>
+
+
+<div class="viewcode-block" id="seq_archive_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.seq_archive_url">[docs]</a><span class="k">def</span> <span class="nf">seq_archive_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the URL to a squence archive file&quot;&quot;&quot;</span>
+
+
+    <span class="k">if</span> <span class="n">release</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">geo_name_slash</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">geo_name_slash</span> <span class="o">=</span> <span class="n">geo_name</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">summary_level</span><span class="o">=</span><span class="n">summary_level</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/&#39;</span>
+
+    <span class="k">return</span> <span class="n">seq_file_templates</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span>
+        <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">),</span>
+        <span class="n">geo_name_slash</span><span class="o">=</span><span class="n">geo_name_slash</span><span class="p">,</span>
+        <span class="n">stname_title</span> <span class="o">=</span> <span class="n">state_name</span><span class="p">(</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">),</span>
+        <span class="n">stusab</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+        <span class="n">seq4</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="seq_estimate_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.seq_estimate_url">[docs]</a><span class="k">def</span> <span class="nf">seq_estimate_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the URL to an estimate file, possibly within an archive file&quot;&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="n">seq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="n">sau</span> <span class="o">=</span> <span class="n">seq_archive_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sau</span> <span class="o">+</span> <span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="s1">&#39;e</span><span class="si">{year}{release}{stusab}{seq4}</span><span class="s1">000.txt&amp;target_format=csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span>
+        <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">),</span>
+        <span class="n">stusab</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+        <span class="n">seq4</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="seq_margin_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.seq_margin_url">[docs]</a><span class="k">def</span> <span class="nf">seq_margin_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the URL to an estimate file, possibly within an archive file&quot;&quot;&quot;</span>
+
+    <span class="n">sau</span> <span class="o">=</span> <span class="n">seq_archive_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sau</span> <span class="o">+</span> <span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="s1">&#39;m</span><span class="si">{year}{release}{stusab}{seq4}</span><span class="s1">000.txt&amp;target_format=csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span>
+        <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">),</span>
+        <span class="n">stusab</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+        <span class="n">seq4</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+<span class="c1">##</span>
+<span class="c1">## Geo files</span>
+<span class="c1">##</span>
+
+<span class="c1"># Full state geofile, with seperate values for each component</span>
+<span class="n">geo_file_template</span> <span class="o">=</span> <span class="n">acs_data_base_url</span> <span class="o">+</span> \
+                    <span class="s1">&#39;/</span><span class="si">{release}</span><span class="s1">_year_seq_by_state/</span><span class="si">{stname_title}</span><span class="s1">/</span><span class="si">{geo_name_slash}</span><span class="s1">&#39;</span> <span class="o">+</span> \
+                    <span class="s1">&#39;g</span><span class="si">{year}{release}{stusab_l}</span><span class="s1">.csv&#39;</span>
+
+<span class="c1"># https://www2.census.gov/programs-surveys/acs/summary_file/2016/documentation/geography/1_year_Mini_Geo.xlsx</span>
+<span class="c1"># https://www2.census.gov/programs-surveys/acs/summary_file/2016/documentation/geography/5yr_year_geo/</span>
+<span class="c1"># Geo file with just the geoids and the file line numbers</span>
+
+<span class="n">geoid_file_template_1</span> <span class="o">=</span> <span class="n">acs_base_url</span> <span class="o">+</span> <span class="s1">&#39;/documentation/geography/1_year_Mini_Geo.xlsx&#39;</span>
+
+<span class="n">geoid_file_template_5</span> <span class="o">=</span> <span class="n">acs_base_url</span> <span class="o">+</span> \
+                    <span class="s1">&#39;/documentation/geography/5yr_year_geo/</span><span class="si">{stusab_l}</span><span class="s1">.xslx&#39;</span>
+
+<div class="viewcode-block" id="geo_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.geo_url">[docs]</a><span class="k">def</span> <span class="nf">geo_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">release</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">geo_name_slash</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">geo_name_slash</span> <span class="o">=</span> <span class="n">geo_name</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">,</span> <span class="n">summary_level</span><span class="o">=</span><span class="n">summary_level</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/&#39;</span>
+
+    <span class="k">return</span> <span class="n">geo_file_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span>
+        <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">),</span>
+        <span class="n">stname_title</span><span class="o">=</span><span class="n">state_name</span><span class="p">(</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">),</span>
+        <span class="n">stusab</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+        <span class="n">stusab_l</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+        <span class="n">geo_name_slash</span><span class="o">=</span><span class="n">geo_name_slash</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="geoid_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.geoid_url">[docs]</a><span class="k">def</span> <span class="nf">geoid_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">release</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">geoid_file_template_1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">geoid_file_template_5</span>
+
+    <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span>
+        <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">),</span>
+        <span class="n">stname_title</span><span class="o">=</span><span class="n">state_name</span><span class="p">(</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">),</span>
+        <span class="n">stusab</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+        <span class="n">stusab_l</span><span class="o">=</span><span class="n">stusab</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="p">)</span></div>
+<span class="c1">##</span>
+<span class="c1">## Table Shells and Lookups</span>
+<span class="c1">##</span>
+
+
+<span class="n">table_shell_templates</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">2013</span><span class="p">:</span> <span class="n">acs_base_url</span> <span class="o">+</span> <span class="s1">&#39;/documentation/user_tools/ACS</span><span class="si">{year}</span><span class="s1">_TableShells.xls&#39;</span><span class="p">,</span>
+    <span class="mi">2014</span><span class="p">:</span> <span class="n">acs_base_url</span> <span class="o">+</span> <span class="s1">&#39;/documentation/user_tools/ACS</span><span class="si">{year}</span><span class="s1">_Table_Shells.xlsx&#39;</span>
+<span class="p">}</span>
+
+<span class="n">lookup_template</span> <span class="o">=</span> <span class="n">acs_base_url</span> <span class="o">+</span> <span class="s1">&#39;/documentation/user_tools/ACS_</span><span class="si">{release}</span><span class="s1">yr_Seq_Table_Number_Lookup.txt&#39;</span>
+
+
+<div class="viewcode-block" id="table_shell_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.table_shell_url">[docs]</a><span class="k">def</span> <span class="nf">table_shell_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2014</span><span class="p">:</span>
+        <span class="n">table_shell_template</span> <span class="o">=</span> <span class="n">table_shell_templates</span><span class="p">[</span><span class="mi">2014</span><span class="p">]</span>
+        <span class="n">frag</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">table_shell_template</span> <span class="o">=</span> <span class="n">table_shell_templates</span><span class="p">[</span><span class="mi">2013</span><span class="p">]</span>
+        <span class="n">frag</span> <span class="o">=</span> <span class="s1">&#39;#1&#39;</span>
+
+    <span class="k">return</span> <span class="n">table_shell_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">))</span><span class="o">+</span><span class="n">frag</span></div>
+
+
+<div class="viewcode-block" id="table_lookup_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.table_lookup_url">[docs]</a><span class="k">def</span> <span class="nf">table_lookup_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="p">,</span> <span class="n">stusab</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">lookup_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">release</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="tiger_url"><a class="viewcode-back" href="../../../../api/publicdata.census.files.html#publicdata.census.files.url_templates.tiger_url">[docs]</a><span class="k">def</span> <span class="nf">tiger_url</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">summary_level</span><span class="p">,</span> <span class="n">stusab</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    :param year: Vintage year</span>
+<span class="sd">    :param summary_level: Summary level, in number format</span>
+<span class="sd">    :param stusab: US State abbreviation</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="kn">from</span> <span class="nn">geoid.censusnames</span> <span class="kn">import</span>  <span class="n">stusab</span> <span class="k">as</span> <span class="n">_stusab_map</span>
+    <span class="kn">from</span> <span class="nn">geoid.core</span> <span class="kn">import</span> <span class="n">names</span> <span class="k">as</span> <span class="n">_sl_names</span>
+
+    <span class="n">sl_name_map</span> <span class="o">=</span> <span class="p">{</span> <span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">_sl_names</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="p">}</span>
+
+    <span class="n">stusab_map</span> <span class="o">=</span> <span class="p">{</span> <span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">_stusab_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">state</span> <span class="o">=</span> <span class="n">stusab_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">stusab</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sl</span> <span class="o">=</span> <span class="n">sl_name_map</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">summary_level</span><span class="p">)]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">sl_u</span> <span class="o">=</span> <span class="n">summary_level</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+    <span class="c1"># Example:</span>
+    <span class="c1"># ftp://ftp2.census.gov/geo/tiger/TIGER2016/TRACT/tl_2016_15_tract.zip</span>
+
+    <span class="n">base</span> <span class="o">=</span>  <span class="sa">f</span><span class="s1">&#39;shape+ftp://ftp2.census.gov/geo/tiger/TIGER</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">sl</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">if</span> <span class="n">sl</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;COUNTY&#39;</span><span class="p">,</span> <span class="s1">&#39;CBSA&#39;</span><span class="p">,</span> <span class="s1">&#39;CSA&#39;</span><span class="p">,</span><span class="s1">&#39;STATE&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">base</span><span class="o">+</span><span class="sa">f</span><span class="s1">&#39;/tl_</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s1">_us_</span><span class="si">{</span><span class="n">sl</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">.zip&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">sl</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base</span><span class="o">+</span><span class="sa">f</span><span class="s1">&#39;/tl_</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">state</span><span class="si">:</span><span class="s1">02</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">sl</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">.zip&#39;</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">publicdata_census</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census.html">General Use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../census_files.html">Census Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../files.html">publicdata.census.files</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
