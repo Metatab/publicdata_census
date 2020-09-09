@@ -1,4 +1,6 @@
-from publicdata.test import TestCase
+import  unittest
+
+from test_support import TestCase
 from rowgenerators import parse_app_url, Downloader
 
 
@@ -104,7 +106,7 @@ class TestBasic(TestCase):
 
         import rowgenerators as rg
 
-        df = rg.dataframe('census://RI/140/B17001').min
+        df = rg.dataframe('census://RI/140/B17001').mi
         print(df.head())
 
 
