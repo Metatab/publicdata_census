@@ -127,9 +127,3 @@ def classify(c):
                 'age_max': int(age_max),
                 'sex': current_sex
             }
-
-
-
-
-
-

@@ -4,8 +4,8 @@
 
 """
 
-from pandas import Series
 import numpy as np
+from pandas import Series
 
 
 class CensusSeries(Series):
@@ -105,4 +105,3 @@ class CensusSeries(Series):
         # for a guide to these calculations.
 
         return np.sqrt(sum(self.m90 ** 2))
-

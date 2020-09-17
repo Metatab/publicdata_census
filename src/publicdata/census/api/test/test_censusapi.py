@@ -1,11 +1,13 @@
 import unittest
+from hashlib import sha256
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from rowgenerators.appurl import parse_app_url
+
 from publicdata.census.api.censusapi import CensusApi
 from publicdata.census.api.url import CensusApiUrl
-from hashlib import sha256
+
 
 def test_data(*paths):
     from os.path import dirname, join, abspath

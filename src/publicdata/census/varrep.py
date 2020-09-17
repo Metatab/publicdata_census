@@ -12,6 +12,7 @@ import gzip
 
 import pandas as pd
 import requests
+
 from publicdata.census.censusreporter.util import get_cache
 from publicdata.census.util import slugify
 

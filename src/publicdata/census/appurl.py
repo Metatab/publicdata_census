@@ -1,8 +1,12 @@
+from warnings import warn
+
 from rowgenerators import Url
 from rowgenerators.exceptions import AppUrlError
+
 from publicdata.census.util import sub_geoids, sub_summarylevel
-from warnings import warn
+
 from .exceptions import CensusParsingException
+
 
 class CensusUrl(Url):
     """A URL for censusreporter tables.
@@ -20,7 +24,6 @@ class CensusUrl(Url):
 
         census://<year>/<release/<geoid>/<summarylevel>/<table>
         census://<geoid>/<summarylevel>/<table>
-
 
     Geoids For the US and states, the geoid may be 'US' or the two character state abbreviation.
 
@@ -42,14 +45,12 @@ class CensusUrl(Url):
 
             parts += [kwargs.get('geoid'), kwargs.get('summarylevel'), kwargs.get('table')]
 
-
             if len(parts) == 3:
                 url = "{}://{}/{}/{}".format('census', *parts )
             elif len(parts) == 4: # Form for censusgeo urls
                 url = "{}://{}/{}/{}/{}".format('census', *parts )
             else:
                 url = "{}:/{}/{}/{}/{}/{}".format('census', *parts)
-
 
         super().__init__(url, downloader, **kwargs)
 
@@ -269,8 +270,3 @@ class CensusUrl(Url):
 
     def get_target(self):
         return self
-
-
-
-
-

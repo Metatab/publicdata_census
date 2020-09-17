@@ -3,12 +3,15 @@
 
 """ App Urls and generators for  accessing  static files from census.gov"""
 
+from warnings import warn
+
+from rowgenerators import parse_app_url
+from rowgenerators.exceptions import AppUrlError
+
 from publicdata.census.appurl import CensusUrl
 from publicdata.census.files.url_templates import tiger_url
 from publicdata.census.util import sub_geoids, sub_summarylevel
-from rowgenerators import parse_app_url
-from rowgenerators.exceptions import AppUrlError
-from warnings import warn
+
 
 class CensusFileUrl(CensusUrl):
 

@@ -5,21 +5,25 @@
 
 """
 
-from publicdata.census.files.url_templates import seq_estimate_url, seq_margin_url, \
-    seq_header_url, geo_header_url, geo_url
-from publicdata.census.files.metafiles import TableMeta
-from rowgenerators import parse_app_url
-from functools import lru_cache
-from operator import itemgetter
-from rowgenerators import Source
-from publicdata.census.files.appurl import CensusUrl
 from copy import copy
-from rowgenerators import SourceError
-from itertools import chain
 from functools import lru_cache
+from itertools import chain
+from operator import itemgetter
+
+from rowgenerators import Source, SourceError, parse_app_url
+from rowgenerators.generator.shapefile import ShapefileSource
+
+from publicdata.census.files.appurl import CensusUrl
+from publicdata.census.files.metafiles import TableMeta
+from publicdata.census.files.url_templates import (
+    geo_header_url,
+    geo_url,
+    seq_estimate_url,
+    seq_header_url,
+    seq_margin_url
+)
 
 from . import logger
-
 
 
 @lru_cache(maxsize=100, typed=False)
@@ -88,7 +92,7 @@ class GeoFile(_CensusFile):
 class SequenceFile(_CensusFile):
     """Represents a single Sequence file, which holds data for a single state and may contain
     multiple tables"""
-    
+
     def __init__(self, year, release, stusab, summary_level, seq):
 
         assert seq is not None
@@ -360,7 +364,9 @@ class Table(_CensusFile):
 
         column_rows = ''
         for c in self.columns:
-            column_rows += f"<tr><td>{c.col_no}</td><td>{c.unique_id}</td><td>{c.short_description}</td><td>{c.description}</td></tr>\n"
+            sd = c.short_description or ''
+            if 'm90' not in c.unique_id:
+                column_rows += f"<tr><td>{c.col_no}</td><td>{c.unique_id}</td><td>{sd}</td><td>{c.description}</td></tr>\n"
 
         try:
             sl_name = {v: k for k, v in sl_names.items()}.get(int(self.summary_level),
@@ -370,7 +376,7 @@ class Table(_CensusFile):
 
         return f"""
         <h1>Census Table {tm.unique_id} ({self.year}/{self.release})</h1>
-        <p><i>{tm.title}, {tm.universe}. </i>{sl_name.title()} in {self.stusab} 
+        <p><i>{tm.title}, {tm.universe}. </i>{sl_name.title()} in {self.stusab}
            {', Subject: '+tm.subject if tm.subject else ''}<p>
         <table>
         <tr><th>#</th><th>Name</th><th>Short Description</th><th>Description</th></tr>
@@ -479,7 +485,6 @@ class CensusSource(Source):
     def iterdata(self):
         yield from self.table.iterdata
 
-from rowgenerators.generator.shapefile import ShapefileSource
 
 class CensusGeoSource(ShapefileSource):
 
@@ -489,6 +494,3 @@ class CensusGeoSource(ShapefileSource):
     def geoframe(self):
         gdf =  super().geoframe()
         return self.ref._mangle_dataframe(gdf)
-
-
-

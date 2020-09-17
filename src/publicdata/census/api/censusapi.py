@@ -5,14 +5,16 @@ Access the Census API and create Pandas dataframes, with support for IPython and
 """
 
 import json
-from collections import UserList, UserDict
+from collections import UserDict, UserList
 from textwrap import fill
 
 import requests
-from terminaltables import AsciiTable as TermTable
-from publicdata.census.util import nl2br, slugify
 from rowgenerators import get_cache
+from terminaltables import AsciiTable as TermTable
+
 from publicdata.census.censusreporter.exceptions import AccessException
+from publicdata.census.util import nl2br, slugify
+
 
 def _cached_get(url, cache=True):
     """Return the results of a GET request, possibly cached.
@@ -320,5 +322,3 @@ class CensusApi(object):
 
             if d.get('identifier', '').endswith('/' + ident):
                 return DatasetMeta(d)
-
-

@@ -241,4 +241,3 @@ def tiger_url(year, summary_level, stusab=None):
     else:
         assert state is not None, (year, sl)
         return base+f'/tl_{year}_{state:02}_{sl.lower()}.zip'
-

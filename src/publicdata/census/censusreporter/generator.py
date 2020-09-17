@@ -11,8 +11,9 @@ from itertools import repeat
 from operator import itemgetter
 from urllib.parse import unquote
 
-from publicdata.census.censusreporter.jsonurl import CensusReporterJsonUrl
 from rowgenerators import Source
+
+from publicdata.census.censusreporter.jsonurl import CensusReporterJsonUrl
 
 
 class CensusReporterSource(Source):

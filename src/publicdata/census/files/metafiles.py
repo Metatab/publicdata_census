@@ -3,11 +3,17 @@
 
 
 """Classes to acess metadata files"""
-from publicdata.census.files.url_templates import table_shell_url, table_lookup_url, seq_estimate_url, seq_margin_url, \
-    seq_header_url, geo_header_url, geo_url
-
 from rowgenerators import parse_app_url
 
+from publicdata.census.files.url_templates import (
+    geo_header_url,
+    geo_url,
+    seq_estimate_url,
+    seq_header_url,
+    seq_margin_url,
+    table_lookup_url,
+    table_shell_url
+)
 
 race_iterations = [
         ('A', 'white',   'White'),
@@ -62,7 +68,7 @@ class Table(object):
     def race(self):
         """Return a race code from the table id"""
 
-        return ri_code_map.get(self.unique_id[-1].lower)
+        return ri_code_map.get(self.unique_id[-1].lower())
 
 
     def _repr_html_(self, **kwargs):
@@ -70,7 +76,9 @@ class Table(object):
         column_rows = ''
         for col_pos in sorted(self.columns):
             c = self.columns[col_pos]
-            column_rows += f"<tr><td>{c.col_no}</td><td>{c.unique_id}</td><td>{c.short_description}</td><td>{c.description}</td></tr>\n"
+            sd = c.short_description or ''
+            column_rows += f"<tr><td>{c.col_no}</td><td>{c.unique_id}</td>"+\
+                           f"<td>{sd}</td><td>{c.description}</td></tr>\n"
 
         return f"""
         <h1>Census Table {self.unique_id}</h1>
@@ -347,7 +355,7 @@ class TableLookup(object):
             table_id_key = row['Table ID'].strip().lower()
 
             if not row['Line Number'].strip(): # Either the table title, or the Universe row
-                
+
                 if 'Universe' not in row['Table Title']:
                     if table_id_key not in tables:
                         tables[table_id_key] = Table(row['Table ID'], row['Table Title'].strip().title(),

@@ -1,5 +1,5 @@
 import numpy as np
-from pandas.core.groupby import SeriesGroupBy, DataFrameGroupBy
+from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
 
 from publicdata.census.dataframe import CensusDataFrame
 from publicdata.census.series import CensusSeries

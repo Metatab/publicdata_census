@@ -10,14 +10,16 @@ import json
 from os.path import dirname, join
 
 import requests
-from publicdata.census.appurl import CensusUrl
-
-from rowgenerators import parse_app_url
+from rowgenerators import Url, parse_app_url
+from rowgenerators.appurl.file.file import FileUrl
 from rowgenerators.appurl.web import WebUrl
 from rowgenerators.exceptions import AppUrlError
+from rowgenerators.generator.json import JsonRowSource
+
+from publicdata.census.api.censusapi import CensusApi
+from publicdata.census.appurl import CensusUrl
 from publicdata.census.censusreporter.jsonurl import CensusReporterJsonUrl
-from publicdata.census.api.censusapi import  CensusApi
-from rowgenerators import Url
+
 
 class CensusApiUrl(Url):
     """A URL for censusreporter tables.
@@ -108,8 +110,6 @@ class CensusApiUrl(Url):
     def join_target(self, tf):
         raise NotImplementedError()
 
-from rowgenerators.generator.json import JsonRowSource
-from rowgenerators.appurl.file.file import FileUrl
 
 
 class CensusApiResourceUrl(FileUrl):
@@ -144,5 +144,3 @@ class CensusApiResourceUrl(FileUrl):
     @property
     def generator(self):
         return JsonRowSource(self)
-
-

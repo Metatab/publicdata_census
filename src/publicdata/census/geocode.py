@@ -1,21 +1,21 @@
 # Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the
 # MIT License, included in this distribution as LICENSE
 
-import requests
-from six import StringIO
-from os import environ
 import csv
-import sys
 import json
-import metatab as mt
+import sys
 from itertools import islice
-from geoid.census import Tract as CensusTract
+from os import environ
+
+import metatab as mt
+import requests
+from address_parser import Parser
 from geoid.acs import Tract as AcsTract
+from geoid.census import Tract as CensusTract
+from metatab import MetatabError
 from requests.exceptions import Timeout
 from rowgenerators import SourceError
-from metatab import MetatabError
-
-from address_parser import Parser
+from six import StringIO
 
 geocoder_header = 'unique_id input_address match quality match_address latlon tiger_id ' \
                   'side_of_street state_fips county_fips tract_fips block_fips'.split()

@@ -106,11 +106,13 @@ class TestBasic(TestCase):
 
         import rowgenerators as rg
 
-        df = rg.dataframe('census://RI/140/B17001').mi
+        df = rg.dataframe('census://RI/140/B17001').mi()
+
         print(df.head())
 
+        df = rg.dataframe('census://RI/140/B11001A').mi()
 
-
+        print(df.head())
 
 if __name__ == '__main__':
     unittest.main()

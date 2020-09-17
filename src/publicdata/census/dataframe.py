@@ -4,12 +4,16 @@
 
 """
 
-import six
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
 
 class CensusDataFrame(pd.DataFrame):
     _metadata = ['title_map', 'release', '_dataframe', '_url', 'table']  # Release is the Census Reporter release metadata
+
+    # Non-key columns that are linked to the geoid
+    geo_cols = ['stusab', 'name', 'county']
 
     def __init__(self, data=None, index=None, columns=None, dtype=None, copy=False, schema=None,
                  table=None, url=None):
@@ -54,12 +58,64 @@ class CensusDataFrame(pd.DataFrame):
                            columns=m,
                            inplace=False)
 
-    @property
-    def mi(self):
+    def mi(self, drop_geo=True, use_iter=None):
         """Return a copy with a multiindex for the columns, with levels for
-        table name, margin/estimate, column number, and race iteration"""
+        table name, margin/estimate, column number, and race iteration
 
-        return self
+
+        :param drop_geo: If True (default) drop the geo columns, name, county and stusab.
+            If False, add them to the index
+        :param use_iter: If True, force using the table iterator ( ie, for races ). If False, never use it.
+            If none, use it if it has more than one value
+        :return: A dataframe ( not a CensusDataFrame), with changed columns and colun index
+        """
+
+        if isinstance(self, pd.MultiIndex):
+            return self
+
+        if drop_geo:
+            df = pd.DataFrame(self.drop(columns=self.geo_cols))
+        else:
+            df = pd.DataFrame(self.set_index(self.geo_cols, append=True))
+
+        def split_col(c):
+            import re
+
+            parts = c.split('_')
+
+            if len(parts) == 1:
+                return c, '', '', ''
+
+            if parts[-1] == 'm90':
+                typ = 'm90'
+                parts = parts[:-1]
+            else:
+                typ = 'est'
+
+            if parts[0][-1].isalpha():
+                try:
+                    # AFAICT, the only iteration is race
+                    itr = self.table.table.race
+                except:
+                    itr = parts[0][-1]
+
+                parts[0] = parts[0][:-1]
+            else:
+                itr = 'all'
+
+            return parts[0], parts[1], itr, typ
+
+        df.columns = pd.MultiIndex.from_tuples([ split_col(c) for c in df.columns],
+                                               names = ['table', 'colno', 'tableitr', 'me'])
+
+        if use_iter is False:
+            df = df.droplevel(2, axis=1)
+        elif use_iter is None and df.columns.get_level_values(2).nunique() == 1:
+            df = df.droplevel(2, axis=1)
+
+        df.index.name = 'geoid'
+
+        return df
 
     def search_columns(self, *args):
         """Return full titles for columns that contain one of the strings in the arguments
@@ -215,7 +271,7 @@ class CensusDataFrame(pd.DataFrame):
         if isinstance(x, tuple):
             return self[x[0]], self[x[1]]
 
-        elif isinstance(x, six.string_types):
+        elif isinstance(x, str):
             return self[x], self[x].m90
 
         elif isinstance(x, CensusSeries):
@@ -391,7 +447,7 @@ class CensusDataFrame(pd.DataFrame):
         Filter on them before stacking.
         """
 
-        t = self.drop(columns=['stusab', 'name', 'county'])
+        t = self.drop(columns=self.geo_cols)
 
         t = pd.DataFrame(t)
         t1 = t[[c for c in t.columns if '_m90' not in c]].stack().to_frame()
