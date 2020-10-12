@@ -460,16 +460,26 @@ class CensusDataFrame(pd.DataFrame):
         t3.index.names = ['geoid', 'column']
 
         if add_dimensions:
+
             sex = pd.DataFrame([(c.unique_id.lower(), c.sex) for c in self.table.columns],
                                columns=['column', 'sex']).set_index('column')
+
             age = pd.DataFrame([(c.unique_id.lower(), c.age) for c in self.table.columns],
                                columns=['column', 'age']).set_index('column')
+
+            min_age = pd.DataFrame([(c.unique_id.lower(), c.min_age) for c in self.table.columns],
+                               columns=['column', 'min_age']).set_index('column')
+
+            max_age = pd.DataFrame([(c.unique_id.lower(), c.max_age) for c in self.table.columns],
+                               columns=['column', 'max_age']).set_index('column')
+
             raceeth = pd.DataFrame([(c.unique_id.lower(), c.raceeth) for c in self.table.columns],
                                 columns=['column', 'raceeth']).set_index('column')
+
             pov = pd.DataFrame([(c.unique_id.lower(), c.poverty_status) for c in self.table.columns],
                                columns=['column', 'poverty_status']).set_index('column')
 
-            t4 = t3.join(sex).join(age).join(raceeth).join(pov).reset_index()
+            t4 = t3.join(sex).join(age).join(min_age).join(max_age).join(raceeth).join(pov).reset_index()
 
             # Move the margin and estimate columns to the end
             return t4[list(c for c in t4.columns if c not in ['estimate', 'margin']) + ['estimate', 'margin']]

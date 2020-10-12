@@ -216,7 +216,6 @@ def tiger_url(year, summary_level, stusab=None):
     :return:
     """
 
-
     from geoid.censusnames import  stusab as _stusab_map
     from geoid.core import names as _sl_names
 
@@ -234,10 +233,21 @@ def tiger_url(year, summary_level, stusab=None):
     # Example:
     # ftp://ftp2.census.gov/geo/tiger/TIGER2016/TRACT/tl_2016_15_tract.zip
 
-    base =  f'shape+ftp://ftp2.census.gov/geo/tiger/TIGER{year}/{sl.upper()}'
+    slu = sl.upper()
+    sll = sl.lower()
+
+    if slu == 'BLOCKGROUP':
+        slu = 'BG'
+        sll = 'bg'
+
+    if slu == 'BLOCK':
+        slu = 'TABBLOCK'
+        sll = 'tabblock10'
+
+    base = f'shape+ftp://ftp2.census.gov/geo/tiger/TIGER{year}/{slu}'
 
     if sl in ('COUNTY', 'CBSA', 'CSA','STATE'):
-        return base+f'/tl_{year}_us_{sl.lower()}.zip'
+        return base+f'/tl_{year}_us_{sll}.zip'
     else:
         assert state is not None, (year, sl)
-        return base+f'/tl_{year}_{state:02}_{sl.lower()}.zip'
+        return base+f'/tl_{year}_{state:02}_{sll}.zip'

@@ -122,12 +122,16 @@ class Column(object):
     def sex(self):
         v = self.description.lower()
 
-        if 'male' in v:
+        if ' male' in v:
             return 'male'
-        elif 'female' in v:
+        elif ' female' in v:
             return 'female'
         else:
             return 'both'
+
+    @property
+    def raceeth(self):
+        return self.race
 
     @property
     def race(self):
@@ -208,6 +212,22 @@ class Column(object):
             return "{:03d}-{:03d}".format(*ar)
         else:
             return 'all'
+
+    @property
+    def min_age(self):
+        ar = self.age_range
+        if ar:
+            return ar[0]
+        else:
+            return 0
+
+    @property
+    def max_age(self):
+        ar = self.age_range
+        if ar:
+            return ar[1]
+        else:
+            return 120
 
 
     @property
