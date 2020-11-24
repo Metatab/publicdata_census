@@ -73,10 +73,13 @@ class CensusDataFrame(pd.DataFrame):
         if isinstance(self, pd.MultiIndex):
             return self
 
-        if drop_geo:
-            df = pd.DataFrame(self.drop(columns=self.geo_cols))
-        else:
-            df = pd.DataFrame(self.set_index(self.geo_cols, append=True))
+        try:
+            if drop_geo:
+                df = pd.DataFrame(self.drop(columns=self.geo_cols))
+            else:
+                df = pd.DataFrame(self.set_index(self.geo_cols, append=True))
+        except KeyError: # no geo columns
+            df = self.copy()
 
         def split_col(c):
             import re

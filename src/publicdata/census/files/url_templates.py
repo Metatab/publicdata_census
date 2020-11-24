@@ -240,14 +240,19 @@ def tiger_url(year, summary_level, stusab=None):
         slu = 'BG'
         sll = 'bg'
 
-    if slu == 'BLOCK':
+    elif slu == 'BLOCK':
         slu = 'TABBLOCK'
         sll = 'tabblock10'
 
+    elif slu == 'ZCTA':
+        slu = 'ZCTA5'
+        sll = 'zcta510'
+
     base = f'shape+ftp://ftp2.census.gov/geo/tiger/TIGER{year}/{slu}'
 
-    if sl in ('COUNTY', 'CBSA', 'CSA','STATE'):
+    if sl in ('COUNTY', 'CBSA', 'CSA','STATE', 'ZCTA'):
         return base+f'/tl_{year}_us_{sll}.zip'
     else:
         assert state is not None, (year, sl)
         return base+f'/tl_{year}_{state:02}_{sll}.zip'
+
