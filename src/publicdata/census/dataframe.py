@@ -292,7 +292,7 @@ class CensusDataFrame(pd.DataFrame):
         * a string that can be resolved to a colum with .lookup()
         * A tuple of names that resolve with .lookup()
 
-        In the tuple form, the first entry is the estimate and the second is the 90% margin
+        In the tuple form, the first entry is the estimate and the second is the 90age margin
 
         :param n: The Numerator, a string, CensusSeries or tuple
         :param d: The Denominator, a string, CensusSeries or tuple
