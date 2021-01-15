@@ -248,6 +248,9 @@ def tiger_url(year, summary_level, stusab=None):
         slu = 'ZCTA5'
         sll = 'zcta510'
 
+    elif slu == 'PUMA':
+        sll = 'puma10'
+
     base = f'shape+ftp://ftp2.census.gov/geo/tiger/TIGER{year}/{slu}'
 
     if sl in ('COUNTY', 'CBSA', 'CSA','STATE', 'ZCTA'):
