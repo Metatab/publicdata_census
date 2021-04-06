@@ -78,6 +78,7 @@ class GeoFile(_CensusFile):
         self.geo_header_url = geo_header_url(year, release, stusab, summary_level, seq)
         self.geo_url = geo_url(year, release, stusab, summary_level, seq)
 
+
     def __iter__(self):
         headers = list(parse_app_url(self.geo_header_url).generator)
 

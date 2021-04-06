@@ -209,6 +209,10 @@ def table_lookup_url(year, release, stusab, summary_level, seq=None):
 
 def tiger_url(year, summary_level, stusab=None):
     """
+    Construct a URL into the FTP server for census geometries
+
+    Years 2020 and later, for summary level block, will return the 2020
+    blocks. Earler years will return 2010 blocks.
 
     :param year: Vintage year
     :param summary_level: Summary level, in number format
@@ -226,9 +230,10 @@ def tiger_url(year, summary_level, stusab=None):
     state = stusab_map.get(stusab.upper())
 
     try:
+        # If it is an int, convert to the name
         sl = sl_name_map[int(summary_level)].upper()
     except ValueError:
-        sl_u = summary_level.upper()
+        sl = summary_level
 
     # Example:
     # ftp://ftp2.census.gov/geo/tiger/TIGER2016/TRACT/tl_2016_15_tract.zip
@@ -241,8 +246,13 @@ def tiger_url(year, summary_level, stusab=None):
         sll = 'bg'
 
     elif slu == 'BLOCK':
-        slu = 'TABBLOCK'
-        sll = 'tabblock10'
+
+        if year < 2020:
+            slu = 'TABBLOCK'
+            sll = 'tabblock10'
+        else:
+            slu = 'TABBLOCK20'
+            sll = 'tabblock20'
 
     elif slu == 'ZCTA':
         slu = 'ZCTA5'
