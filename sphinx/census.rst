@@ -70,7 +70,9 @@ or:
 .. code-block:: python
 
     from publicdata import CensusFileUrl
-    rom rowgenerators import Downloader CensusFileUrl(year=2016,release=5,table='B17001',summarylevel='140',geoid='CA', downloader=Downloader())
+    from rowgenerators import Downloader
+
+    CensusFileUrl(year=2016,release=5,table='B17001',summarylevel='140',geoid='CA', downloader=Downloader())
 
 
 Census Dataframes

@@ -50,7 +50,6 @@ class CensusDataFrame(pd.DataFrame):
         # There is a bug elsewhere that sometimes the columns are uppercase, and sometimes
         # they are lowercase.
 
-
         m = dict( list(self.title_map.items()) +
                   [ (k.lower(), v) for k,v in self.title_map.items()])
 

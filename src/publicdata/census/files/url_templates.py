@@ -190,6 +190,7 @@ table_shell_templates = {
 
 lookup_template = acs_base_url + '/documentation/user_tools/ACS_{release}yr_Seq_Table_Number_Lookup.txt'
 
+api_var_template = 'https://api.census.gov/data/{year}/acs/acs{release}/variables.json'
 
 def table_shell_url(year, release, stusab, summary_level, seq=None):
 
@@ -205,6 +206,9 @@ def table_shell_url(year, release, stusab, summary_level, seq=None):
 
 def table_lookup_url(year, release, stusab, summary_level, seq=None):
     return lookup_template.format(year=year, release=int(release))
+
+def api_var_url(year, release):
+    return api_var_template.format(year=year, release=int(release))
 
 
 def tiger_url(year, summary_level, stusab=None):

@@ -287,7 +287,7 @@ class Table(_CensusFile):
         cols = [None] * len(self.geo()['LOGRECNO'][0]) + self._columns
 
         # Geez, what a mess ...
-        short_descriptions_map = { c.unique_id:c.description for c in self.table.columns.values() }
+        short_descriptions_map = { c.unique_id:c.name for c in self.table.columns.values() }
 
         for i, (f, ld, c) in enumerate(zip(self.file_headers, self.descriptions, cols)):
 
@@ -299,7 +299,7 @@ class Table(_CensusFile):
             c.long_description = ld
 
             # Long description includes the table title
-            c.description = ' - '.join(c.long_description.split('-')[1:])
+            c.name = ' - '.join(c.long_description.split('-')[1:])
 
             c.short_description = short_descriptions_map.get(c.unique_id)
 
@@ -367,7 +367,7 @@ class Table(_CensusFile):
         for c in self.columns:
             sd = c.short_description or ''
             if 'm90' not in c.unique_id:
-                column_rows += f"<tr><td>{c.col_no}</td><td>{c.unique_id}</td><td>{sd}</td><td>{c.description}</td></tr>\n"
+                column_rows += f"<tr><td>{c.col_no}</td><td>{c.unique_id}</td><td>{sd}</td><td>{c.name}</td></tr>\n"
 
         try:
             sl_name = {v: k for k, v in sl_names.items()}.get(int(self.summary_level),
@@ -440,9 +440,9 @@ class CensusSource(Source):
 
             yield {
                 'name': c.unique_id,
-                'title': c.description,
+                'title': c.name,
                 'code': c.unique_id,
-                'code_title': c.unique_id + ' ' + c.description if c.unique_id != c.description else c.unique_id,
+                'code_title': c.unique_id + ' ' + c.name if c.unique_id != c.name else c.unique_id,
                 'indent': None,
                 'index': index,
                 'position': c.col_no
