@@ -57,6 +57,34 @@ def age_range(c):
 
         return 'na'
 
+race_iterations = [
+    ('A', 'white', 'White'),
+    ('B', 'black', 'Black or African American'),
+    ('C', 'aian', 'American Indian and Alaska Native'),
+    ('D', 'asian', 'Asian'),
+    ('E', 'nhopi', 'Native Hawaiian and Other Pacific Islander'),
+    ('F', 'other', 'Some Other Race'),
+    ('G', 'many', 'Two or More Races'),
+    ('H', 'nhwhite', 'White Alone, Not Hispanic or Latino'),
+    ('N', 'nhisp', 'Not Hispanic or Latino'),
+    ('I', 'hisp', 'Hispanic or Latino'),
+    #('C', 'aian', 'American Indian'),
+    (None, 'all', 'All races')]
+
+race_iteration_alternatives = [
+    ("A", "white", ["White", "caucasian"]),
+    ("B", "black", ["Black", "African American"]),
+    ("C", "aian", ["American Indian", "Alaska Native"]),
+    ("D", "asian", "Asian"),
+    ("E", "nhopi", ["Native Hawaiian", "Pacific Islander"]),
+    ("F", "other", "Some Other Race"),
+    ("G", "many", "multiple race"),
+    ("H", "nhwhite", "non-hispanic White"),
+    ("N", "nhisp", "Not Hispanic"),
+    ("I", "hisp", ["Hispanic", "Latino", "chicano", "mexican"]),
+    ("C", "aian", ["American Indian", "Indian", "Native American"]),
+    (None, "all", "All races"),
+]
 
 race_eths = {
     'American Indian and Alaska Native Alone': 'aian',
@@ -127,3 +155,4 @@ def classify(c):
                 'age_max': int(age_max),
                 'sex': current_sex
             }
+

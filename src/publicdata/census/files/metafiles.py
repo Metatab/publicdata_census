@@ -4,6 +4,8 @@
 import re
 import pandas as pd
 from functools import cached_property
+from collections import namedtuple
+from publicdata.census.dimensions import race_iterations
 
 """Classes to acess metadata files"""
 from publicdata.census.files.url_templates import (
@@ -13,35 +15,26 @@ from publicdata.census.files.url_templates import (
 )
 from rowgenerators import parse_app_url
 
-race_iterations = [
-    ('A', 'white', 'White'),
-    ('B', 'black', 'Black or African American'),
-    ('C', 'aian', 'American Indian and Alaska Native'),
-    ('D', 'asian', 'Asian'),
-    ('E', 'nhopi', 'Native Hawaiian and Other Pacific Islander'),
-    ('F', 'other', 'Some Other Race'),
-    ('G', 'many', 'Two or More Races'),
-    ('H', 'nhwhite', 'White Alone, Not Hispanic or Latino'),
-    ('N', 'nhisp', 'Not Hispanic or Latino'),
-    ('I', 'hisp', 'Hispanic or Latino'),
-    ('C', 'aian', 'American Indian'),
-    (None, 'all', 'All races')]
-
 ri_code_map = {code.lower(): race for code, race, term in race_iterations if code}
 
 # A regex to remove race interations from the table titles
 ri_titles = []
 for _, _, ri in race_iterations:
-    ri_titles.append(fr"\({ri}\)".title())
+    ri_titles.append(fr"\({ri} Alone Householder\)".title())
     ri_titles.append(fr"\({ri} Householder\)".title())
     ri_titles.append(fr"\({ri} Alone\)".title())
-    ri_titles.append(fr"\({ri} Alone Householder\)".title())
+    ri_titles.append(fr"\({ri}\)".title())
 
-p = re.compile('|'.join(ri_titles))
+ri_titles_p = re.compile('|'.join(ri_titles), re.IGNORECASE)
 
-def remove_ri_title(v):
-    return re.sub(r'\s+',' ', re.sub(p,'',v)).strip()
+age_patterns = {
+    'to': re.compile("(?P<lower>\d+) to (?P<upper>\d+) years"),
+    'and': re.compile("(?P<lower>\d+) and (?P<upper>\d+) years"),
+    'under': re.compile("under (?P<upper>\d+) years"),
+    'over': re.compile("(?P<lower>\d+) years? and over"),
+    'single': re.compile("(?P<upperlower>\d+) years"),
 
+}
 
 class Table(object):
     """Represents a  Census Table"""
@@ -68,6 +61,7 @@ class Table(object):
 
         self.columns = {}
 
+
     @property
     def row(self):
         return [
@@ -76,25 +70,119 @@ class Table(object):
             self.startpos,
             self.title,
             self.universe,
-            self.subject
+            self.subject,
+
         ]
 
     @property
     def dict(self):
-        return {
+        from publicdata.census.codes import describe_table
+
+        codes = describe_table(self.unique_id)
+
+        d =  {
             'table_id': self.unique_id,
             'seq': self.seq,
+            'n_seg': self.number_of_segments,
             'start_pos': self.startpos,
             'title': self.title,
+            'bare_title': self.bare_title,
             'universe': self.universe,
-            'subject': self.subject
+            'subject': self.subject,
+            'age': self.age,
+            'age_range': self.age_range,
+            'sex': self.sex,
+            'race': self.race,
+            'units': self.units,
+            'technical': codes.technical,
+
         }
+
+        d.update(self.universe_flags(self.universe))
+
+        return d
+
+    def universe_flags(self, v: str) -> dict:
+
+        v = v.lower()
+        d = {
+            'civilian': True if 'civilian' in v else False,
+            'veteran': True if 'veteran' in v else False,
+
+            'employed': True if 'employed' in v or 'worke' in v else False,
+            'has_income': True if 'with earnings' in v or 'with income' in v else False,
+            'ft-employed': True if 'full-time' in v else False,
+            'noninstitutionalized': True if 'noninstitutionalized' in v else False,
+            'citizens': True if 'citizens' in v else False,
+            'household': True if 'household' in v else False,
+            'family': True if 'famil' in v else False,
+            'nonfamily': True if 'nonfamily' in v else False,
+            'foreign-born': True if 'foreign-born' in v or 'born outside' in v else False,
+            'opposite-sex': True if 'opposite-sex' in v else False,
+
+            'grand-pc': True if 'grand' in v else False,
+            'renter': True if 'renter' in v else False,
+            'owner': True if 'owner' in v else False,
+            'vacant': True if 'vacant' in v else False,
+        }
+
+        return d
+
+    @property
+    def units(self):
+        # Strip off the race specification for race iterations
+        if 'Dollars' in self.title:
+            return 'dollars'
+        else:
+            return 'count'
+
+    @property
+    def sex(self):
+        return  Column.extract_sex(self.universe)
 
     @property
     def race(self):
         """Return a race code from the table id"""
 
-        return ri_code_map.get(self.unique_id[-1].lower())
+        race =  ri_code_map.get(self.unique_id[-1].lower())
+        if not race:
+            race = Column.extract_raceeth(self.universe)
+
+        return race
+
+    @property
+    def age(self):
+        return Column.format_age(self.age_range)
+
+    @property
+    def age_range(self):
+        return Column.extract_age(self.universe)
+
+    @property
+    def bare_title(self):
+
+        # Strip out races from the title
+        t = re.sub(r'\s+', ' ', re.sub(ri_titles_p, '', self.title)).strip()
+
+        # Strip the title even more
+        strps = (
+            'Sex By Age By', 'By Sex By Age', 'Sex By Age', 'Sex By', 'Age By',
+            'In The Past 12 Months', '(In 2020 Inflation-Adjusted Dollars)', '(Dollars)', '(3 Types)', '(5 Types)',
+            'For The Full-Time, Year-Round Civilian Employed Population 16 Years And Over',
+            'For The Full-Time, Year-Round Civilian Employed Male Population 16 Years And Over'
+            'For The Full-Time, Year-Round Civilian Employed Female Population 16 Years And Over'
+        )
+
+        for s in strps:
+            t = t.replace(s, '')
+
+        t = t.replace('By Nativity', 'Nativity')
+        t = t.strip()
+
+        if not t:
+            t = 'Population'
+
+        return t
 
     def _repr_html_(self, **kwargs):
         column_rows = ''
@@ -114,7 +202,6 @@ class Table(object):
         {column_rows}
         </table>
         """
-
 
 class Column(object):
     """Represents a column in a Census Table"""
@@ -149,6 +236,16 @@ class Column(object):
             self.short_description,
             self.path,
         ]
+
+    @classmethod
+    def extract_sex(cls, v):
+        """Extract sex from the universe"""
+        if 'female' in v.lower():
+            return 'female'
+        elif 'male' in v.lower():
+            return 'male'
+        else:
+            return 'all'
 
     @property
     def sex(self):
@@ -196,44 +293,38 @@ class Column(object):
         return self.extract_raceeth(self.path)
 
 
+
+
     @classmethod
     def extract_age(cls,v):
 
-        pats = {
-            'to': re.compile("(?P<lower>\d+) to (?P<upper>\d+) years"),
-            'and': re.compile("(?P<lower>\d+) and (?P<upper>\d+) years"),
-            'under': re.compile("under (?P<upper>\d+) years"),
-            'over': re.compile("(?P<lower>\d+) years? and over"),
-            'single': re.compile("(?P<upperlower>\d+) years"),
 
-        }
 
         if v and 'year' in v:
 
             v = v.replace('1 year ago', '').replace('year-round', '')
 
-            m = pats['to'].search(v)
+            m = age_patterns['to'].search(v)
             if m:
                 return (int(m.group('lower')), int(m.group('upper')))
 
-            m = pats['and'].search(v)
+            m = age_patterns['and'].search(v)
             if m:
                 return (int(m.group('lower')), int(m.group('upper')))
 
-            m = pats['under'].search(v)
+            m = age_patterns['under'].search(v)
             if m:
                 return (0, int(m.group('upper')))
 
-            m = pats['over'].search(v)
+            m = age_patterns['over'].search(v)
             if m:
                 return (int(m.group('lower')), 120)
 
-            m = pats['single'].search(v)
+            m = age_patterns['single'].search(v)
             if m:
                 return (int(m.group('upperlower')), int(m.group('upperlower')))
 
         return None
-
 
     @property
     def age_range(self):
@@ -242,13 +333,16 @@ class Column(object):
 
         return self.extract_age(self.path)
 
-    @property
-    def age(self):
-        ar = self.age_range
-        if ar:
-            return "{:03d}-{:03d}".format(*ar)
+    @classmethod
+    def format_age(cls, age_range):
+        if age_range:
+            return "{:03d}-{:03d}".format(*age_range)
         else:
             return 'all'
+
+    @property
+    def age(self):
+        return self.format_age(self.age_range)
 
     @property
     def min_age(self):
@@ -452,7 +546,6 @@ class TableLookup(object):
                 if 'Universe' not in row['Table Title']:
                     if table_id_key not in tables:
 
-
                         tables[table_id_key] = Table(row['Table ID'], row['Table Title'].strip().title(),
                                                      seq=[int(row['Sequence Number'])],
                                                      startpos=int(row['Start Position']),
@@ -480,7 +573,7 @@ class TableLookup(object):
                         col_id = f"{row['Table ID']}_{line_no:03}"
 
                         api_meta = vars[col_id + 'E']
-                        full_path = '/'+api_meta['label'].replace('Estimate!!', '').replace('!!', '/').replace(':', '').lower()
+                        full_path = '/'+api_meta['label'].replace('Estimate!!', '').replace('/', '|').replace('!!', '/').replace(':', '').lower()
 
                         # Path elements that have '--' in them are grouping headings, and should be ignored.
                         path = '/'.join(filter(lambda v: not v.endswith('--'), full_path.split('/')))
@@ -527,17 +620,6 @@ class TableLookup(object):
         tpath = cdf.table_id + cdf.path
         bad_tables_ids = list(sorted(set([e[0] for e in list(tpath.value_counts()[tpath.value_counts()>1].index.str.split('/'))])))
 
-        df['race'] = df.table_id.str.replace('PR','').str.slice(-1).apply(lambda v: ri_code_map.get(v.lower()))
-
-        # Some tables don't have race iterations, but do have a race in the universe
-        df.loc[df.race.isnull(), 'race'] = df.loc[df.race.isnull(), 'universe'].apply(Column.extract_raceeth)
-
-        df['age'] = df.universe.apply(Column.extract_age)
-
-        # Strip off the race specification for race iterations
-        df['bare_title'] = df.title
-        df.loc[~df.race.isnull(), 'bare_title'] = df[~df.race.isnull()].title.apply(remove_ri_title )
-
         df['redundant_paths'] = df.table_id.isin(bad_tables_ids)
 
         return df
@@ -580,15 +662,16 @@ class TableLookup(object):
             return list(filter(keep_path_elem, v.split('/'))) if v else v
 
         df['filtered_path'] = df.path.apply(filter_path).apply(lambda v: '/'.join(v[:-1]))
+        df['filtered_pathname'] = df.path.apply(filter_path).apply(lambda v: '/'.join(v))
 
         t = df.filtered_path.str.split('/')
-        t = t.apply(lambda v: v[1:])
+        t = t.apply(lambda v: v[1:]) # Remove the first element, which is always empty
         df['n_levels'] = t.apply(len)
 
         for i in range(1, df.n_levels.max()):
-            df[f'level_{i}'] = df.path.apply(filter_path).apply(lambda v: v[i] if len(v) > i + 1 else None)
+            df[f'level_{i}'] = df.path.apply(filter_path).apply(lambda v: v[i].replace('/','|') if len(v) > i + 1 else None)
 
-        df['filtered_path'] = df['filtered_path'].replace('', None)
+        df['filtered_path'] = df['filtered_path'].replace('', None).replace('/total groups tallied','')
 
         return df
 
