@@ -88,3 +88,34 @@ def nl2br(v, is_xhtml= True ):
         return v.replace('\n','<br />\n')
     else :
         return v.replace('\n','<br>\n')
+
+
+# Cleaning universe strings. This is mostly for development
+universe_strips = [
+    'civilian','employed','noninstitutionalized','citizens','household','households','population',
+    'full-time, year-round','foreign-born','nonfamily','families','family','workers','worked', 'born outside',
+    'veterans', 'woman', 'women', 'female','man', 'men', 'male','vacant','occupied','owner-occupied','renter-occupied',
+    'earnings','income'
+
+]
+
+def strip_age(v):
+    from publicdata.census.files.text_filter import age_patterns
+    for k, p in age_patterns.items():
+        v = p.sub('',v)
+
+    return v
+
+def clean_universe(v):
+    import re
+    from publicdata.census.files.text_filter import ri_titles
+
+    v = v.lower()
+    for s in universe_strips:
+        v = re.sub(r"\b"+s+r"\b",'', v)
+    v = re.sub(ri_titles_p, '', v)
+    v = strip_age(v)
+    v = v.lower()
+    v = re.sub('\s+',' ', v)
+    v = v.strip(' ,')
+    return v

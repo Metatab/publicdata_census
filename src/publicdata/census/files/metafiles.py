@@ -1,11 +1,10 @@
 # Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the
 # MIT License, included in this distribution as LICENSE
 
-import re
 import pandas as pd
 from functools import cached_property
-from collections import namedtuple
 from publicdata.census.dimensions import race_iterations
+from publicdata.census.files.text_filter import universe_flags, ri_code_map,  ri_titles_p, age_patterns
 
 """Classes to acess metadata files"""
 from publicdata.census.files.url_templates import (
@@ -15,26 +14,6 @@ from publicdata.census.files.url_templates import (
 )
 from rowgenerators import parse_app_url
 
-ri_code_map = {code.lower(): race for code, race, term in race_iterations if code}
-
-# A regex to remove race interations from the table titles
-ri_titles = []
-for _, _, ri in race_iterations:
-    ri_titles.append(fr"\({ri} Alone Householder\)".title())
-    ri_titles.append(fr"\({ri} Householder\)".title())
-    ri_titles.append(fr"\({ri} Alone\)".title())
-    ri_titles.append(fr"\({ri}\)".title())
-
-ri_titles_p = re.compile('|'.join(ri_titles), re.IGNORECASE)
-
-age_patterns = {
-    'to': re.compile("(?P<lower>\d+) to (?P<upper>\d+) years"),
-    'and': re.compile("(?P<lower>\d+) and (?P<upper>\d+) years"),
-    'under': re.compile("under (?P<upper>\d+) years"),
-    'over': re.compile("(?P<lower>\d+) years? and over"),
-    'single': re.compile("(?P<upperlower>\d+) years"),
-
-}
 
 class Table(object):
     """Represents a  Census Table"""
@@ -61,7 +40,6 @@ class Table(object):
 
         self.columns = {}
 
-
     @property
     def row(self):
         return [
@@ -80,71 +58,39 @@ class Table(object):
 
         codes = describe_table(self.unique_id)
 
-        d =  {
+        d = {
             'table_id': self.unique_id,
             'seq': self.seq,
             'n_seg': self.number_of_segments,
             'start_pos': self.startpos,
             'title': self.title,
             'bare_title': self.bare_title,
+            'technical': codes.technical,
             'universe': self.universe,
             'subject': self.subject,
             'age': self.age,
             'age_range': self.age_range,
             'sex': self.sex,
             'race': self.race,
-            'units': self.units,
-            'technical': codes.technical,
-
         }
 
-        d.update(self.universe_flags(self.universe))
+        d.update(universe_flags(self.universe))
+
+        d['units'] = self.units
 
         return d
 
-    def universe_flags(self, v: str) -> dict:
 
-        v = v.lower()
-        d = {
-            'civilian': True if 'civilian' in v else False,
-            'veteran': True if 'veteran' in v else False,
-
-            'employed': True if 'employed' in v or 'worke' in v else False,
-            'has_income': True if 'with earnings' in v or 'with income' in v else False,
-            'ft-employed': True if 'full-time' in v else False,
-            'noninstitutionalized': True if 'noninstitutionalized' in v else False,
-            'citizens': True if 'citizens' in v else False,
-            'household': True if 'household' in v else False,
-            'family': True if 'famil' in v else False,
-            'nonfamily': True if 'nonfamily' in v else False,
-            'foreign-born': True if 'foreign-born' in v or 'born outside' in v else False,
-            'opposite-sex': True if 'opposite-sex' in v else False,
-
-            'grand-pc': True if 'grand' in v else False,
-            'renter': True if 'renter' in v else False,
-            'owner': True if 'owner' in v else False,
-            'vacant': True if 'vacant' in v else False,
-        }
-
-        return d
-
-    @property
-    def units(self):
-        # Strip off the race specification for race iterations
-        if 'Dollars' in self.title:
-            return 'dollars'
-        else:
-            return 'count'
 
     @property
     def sex(self):
-        return  Column.extract_sex(self.universe)
+        return Column.extract_sex(self.universe)
 
     @property
     def race(self):
         """Return a race code from the table id"""
 
-        race =  ri_code_map.get(self.unique_id[-1].lower())
+        race = ri_code_map.get(self.unique_id[-1].lower())
         if not race:
             race = Column.extract_raceeth(self.universe)
 
@@ -160,29 +106,60 @@ class Table(object):
 
     @property
     def bare_title(self):
+        import re
+        from .text_filter import strip_phrases
 
         # Strip out races from the title
         t = re.sub(r'\s+', ' ', re.sub(ri_titles_p, '', self.title)).strip()
 
         # Strip the title even more
-        strps = (
-            'Sex By Age By', 'By Sex By Age', 'Sex By Age', 'Sex By', 'Age By',
-            'In The Past 12 Months', '(In 2020 Inflation-Adjusted Dollars)', '(Dollars)', '(3 Types)', '(5 Types)',
-            'For The Full-Time, Year-Round Civilian Employed Population 16 Years And Over',
-            'For The Full-Time, Year-Round Civilian Employed Male Population 16 Years And Over'
-            'For The Full-Time, Year-Round Civilian Employed Female Population 16 Years And Over'
-        )
 
-        for s in strps:
-            t = t.replace(s, '')
+        for phrase in strip_phrases:
+            t = re.sub(phrase, '', t, flags=re.IGNORECASE)
 
         t = t.replace('By Nativity', 'Nativity')
-        t = t.strip()
 
         if not t:
-            t = 'Population'
+            d = {
+                'people': 'Population',
+                'housing': 'Housing Units',
+                'dollars': 'Dollars',
+            }
+
+
+
+            t = d[self.units]
+
+        import re
+        def clean_title(v):
+            v = re.sub(r'\s+', ' ', v)
+            v = re.sub(r'By .*', '', v)
+            v = re.sub(r'-- .*', '', v)
+            v = re.sub(r'For .*', '', v)
+            v = re.sub(r'In .*', '', v)
+            return v.strip()
+
+        t = clean_title(t)
+
+        t = t.replace('And Types Of Internet', 'And Type Of Internet')
+        t = t.replace('Median Sex', 'Sex').strip()
+
 
         return t
+
+    @property
+    def units(self):
+        """Return the units of the table, from the universe"""
+
+        u = self.universe.lower()
+
+        if 'dollars' in u or 'dollars' in self.title.lower():
+            return 'dollars'
+        elif 'housing' in u:
+            return 'housing'
+        else:
+            return 'people'
+
 
     def _repr_html_(self, **kwargs):
         column_rows = ''
@@ -203,6 +180,7 @@ class Table(object):
         </table>
         """
 
+
 class Column(object):
     """Represents a column in a Census Table"""
     csv_header = 'tableid id colno desc short_desc'.split()
@@ -216,7 +194,7 @@ class Column(object):
         self.name = name.strip(':') if name else None
         self.short_description = short_desc or name
 
-        self.path=path
+        self.path = path
 
         self.col_no = col_no
         self.seq_file_col_no = seq_file_col_no
@@ -240,9 +218,12 @@ class Column(object):
     @classmethod
     def extract_sex(cls, v):
         """Extract sex from the universe"""
-        if 'female' in v.lower():
+
+        v = v.lower()
+
+        if 'female' in v or 'women' in v:
             return 'female'
-        elif 'male' in v.lower():
+        elif 'male' in v or 'men' in v:
             return 'male'
         else:
             return 'all'
@@ -267,7 +248,6 @@ class Column(object):
 
         for code, race, term in race_iterations:
             if term.lower() in v.lower():
-
                 return race
 
         # Maybe there is more race information in the table title, but
@@ -280,7 +260,6 @@ class Column(object):
 
         return 'all'
 
-
     @property
     def raceeth(self):
 
@@ -292,15 +271,22 @@ class Column(object):
 
         return self.extract_raceeth(self.path)
 
-
-
-
     @classmethod
-    def extract_age(cls,v):
+    def extract_age(cls, v):
 
-
+        v = v.lower()
 
         if v and 'year' in v:
+
+            # Ignore:
+            # "Grandparents living with own grandchildren under 18 years"
+            if 'grandp' in v.lower() or 'grandc' in v.lower():
+                return None
+
+            # We do need to process these, but not the part about children under 18
+            # Presence Of Own Children Under 18 Years By Age Of Own Children Under 18 Years By Employment Status For Females 20 To 64 Years
+            if 'own children' in v:
+                v = v.replace('own children under 18 years', '')
 
             v = v.replace('1 year ago', '').replace('year-round', '')
 
@@ -329,7 +315,6 @@ class Column(object):
     @property
     def age_range(self):
         """Parse the description for an age range"""
-        import re
 
         return self.extract_age(self.path)
 
@@ -361,7 +346,7 @@ class Column(object):
             return 120
 
     @classmethod
-    def extract_poverty(cls,v):
+    def extract_poverty(cls, v):
         pov_map = {
             'under 1.00': 'lt100',
             'below 100 percent of the poverty level': 'lt100',
@@ -373,7 +358,7 @@ class Column(object):
             'at or above 150 percent of the poverty level': 'gt150',
             '1.00 to 1.99': '100-200',
             '2.0  and over': 'gt200',
-            '2.00 to 3.99 of poverty threshold': '200-300',
+            '2.00 to 3.99 of poverty threshold': '200-400',
             '1.00 to 1.37 of poverty threshold': '100-137'
         }
 
@@ -387,18 +372,57 @@ class Column(object):
     def poverty_status(self):
         return self.extract_poverty(self.path)
 
+    @staticmethod
+    def remove_path_elem(e):
+        """Remove elements from the path that are not useful for analysis"""
+        from .text_filter import path_filter
+
+        removes = ['total', 'years', 'male', 'female', 'tallied']
+
+        removes.extend(e[0] for e in path_filter)
+
+        for r in removes:
+            if r in e:
+                return True
+
+        return False
+
+    @property
+    def filtered_path(self):
+        return '/'.join([e for e in self.path.split('/') if not Column.remove_path_elem(e)])
+
+    def path_flags(self):
+        from .text_filter import path_filter
+
+        flags = {}
+        for e, var, val in path_filter:
+            flags[var] = None
+
+        for p in self.path.split('/'):
+            for e, var, val in path_filter:
+                if e.lower() == p.lower():
+                    flags[var] = val
+
+        return flags
+
     @property
     def dict(self):
-        return {
+        d = {
             'sex': self.sex,
-            'raceeth': self.raceeth,
+            'race': self.raceeth,
             'age': self.age,
             'age_range': self.age_range,
             'min_age': self.min_age,
             'max_age': self.max_age,
             'poverty_status': self.poverty_status,
             'path': self.path,
+            'filtered_path': self.filtered_path,
         }
+
+        d.update(self.path_flags())
+
+        return d
+
 
 class TableShell(object):
     """Access object for table shell files.
@@ -573,7 +597,9 @@ class TableLookup(object):
                         col_id = f"{row['Table ID']}_{line_no:03}"
 
                         api_meta = vars[col_id + 'E']
-                        full_path = '/'+api_meta['label'].replace('Estimate!!', '').replace('/', '|').replace('!!', '/').replace(':', '').lower()
+                        full_path = '/' + api_meta['label'].replace('Estimate!!', '').replace('/', '|').replace('!!',
+                                                                                                                '/').replace(
+                            ':', '').lower()
 
                         # Path elements that have '--' in them are grouping headings, and should be ignored.
                         path = '/'.join(filter(lambda v: not v.endswith('--'), full_path.split('/')))
@@ -592,7 +618,6 @@ class TableLookup(object):
                     # Headings, which have fractional line numebrs
                     tables[table_id_key].fractionals[row['Line Number']] = row.dict
 
-
         self._tables = tables
 
         return self._tables
@@ -606,19 +631,18 @@ class TableLookup(object):
 
         return self._tables
 
-
-
     @cached_property
     def tables_df(self):
         """Return a DataFrame of the tables"""
-        df =  pd.DataFrame([table.dict for table in self.tables.values()])
+        df = pd.DataFrame([table.dict for table in self.tables.values()])
 
         # Mark tables that have paths that are not unique, which happens because
         # there are too many columns with '--' in them
 
         cdf = self.columns_df
         tpath = cdf.table_id + cdf.path
-        bad_tables_ids = list(sorted(set([e[0] for e in list(tpath.value_counts()[tpath.value_counts()>1].index.str.split('/'))])))
+        bad_tables_ids = list(
+            sorted(set([e[0] for e in list(tpath.value_counts()[tpath.value_counts() > 1].index.str.split('/'))])))
 
         df['redundant_paths'] = df.table_id.isin(bad_tables_ids)
 
@@ -627,6 +651,7 @@ class TableLookup(object):
     @cached_property
     def columns_df(self):
         """Return a DataFrame of the columns"""
+
         def ud(d1, d2):
             d1.update(d2)
             return d1
@@ -636,45 +661,13 @@ class TableLookup(object):
             for column_name, c in table.columns.items():
                 cols.append(c)
 
-        ac = [ud(dict(uid=e.unique_id, table_id=e.table_id, name=e.name), e.dict) for e in cols]
+        ac = [ud(dict(column_id=e.unique_id, table_id=e.table_id, name=e.name), e.dict) for e in cols]
         df = pd.DataFrame(ac)
 
         # Filter the path so that it doesn't include elements that have their own columns,
         # such as race, age, poverty
 
-        def keep_path_elem(v):
-
-            def extract_sex(v):
-                if v == 'male':
-                    return 'male'
-                elif v == 'female':
-                    return 'female'
-                else:
-                    return None
-
-            if extract_sex(v) is None and Column.extract_age(v) is None and Column.extract_poverty(
-                    v) == 'all' and v != 'total':
-                return True
-            else:
-                return False
-
-        def filter_path(v):
-            return list(filter(keep_path_elem, v.split('/'))) if v else v
-
-        df['filtered_path'] = df.path.apply(filter_path).apply(lambda v: '/'.join(v[:-1]))
-        df['filtered_pathname'] = df.path.apply(filter_path).apply(lambda v: '/'.join(v))
-
-        t = df.filtered_path.str.split('/')
-        t = t.apply(lambda v: v[1:]) # Remove the first element, which is always empty
-        df['n_levels'] = t.apply(len)
-
-        for i in range(1, df.n_levels.max()):
-            df[f'level_{i}'] = df.path.apply(filter_path).apply(lambda v: v[i].replace('/','|') if len(v) > i + 1 else None)
-
-        df['filtered_path'] = df['filtered_path'].replace('', None).replace('/total groups tallied','')
-
         return df
-
 
 
 class TableMeta(object):
@@ -765,3 +758,4 @@ class TableMeta(object):
 
 class SequenceMeta(object):
     pass
+
